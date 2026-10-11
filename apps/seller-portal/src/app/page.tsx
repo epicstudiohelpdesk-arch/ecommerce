@@ -1,0 +1,24 @@
+import React from 'react';
+import { Button, Badge, Card } from '@repo/ui';
+
+export default function SellerPortalHomePage() {
+  return (
+    <main className="max-w-4xl mx-auto py-12 px-4">
+      <header className="mb-8">
+        <Badge variant="default">Artisan Workspace</Badge>
+        <h1 className="text-3xl font-bold tracking-tight text-stone-900 mt-2">
+          Artisan Studio Hub
+        </h1>
+        <p className="text-stone-600 mt-1">
+          Manage your handcrafted catalog, order fulfillment, and earnings.
+        </p>
+      </header>
+
+      <Card>
+        <h2 className="text-xl font-semibold text-stone-900 mb-2">Shop Status</h2>
+        <p className="text-stone-600 mb-4">Seller onboarding and storefront operational center.</p>
+        <Button variant="secondary">View Catalog</Button>
+      </Card>
+    </main>
+  );
+}

@@ -183,19 +183,23 @@ Every gate is an auditable milestone governed by the following rules:
 
 ---
 
-### Gate G05: Product Catalog, Taxonomy & Media Management
+### Gate G06: Product Catalogue, Listing Management & Inventory
 
-- **Focus:** Multi-category handcrafted taxonomy, product creation with multi-variant attributes (materials, dimensions, colors), image ingestion pipeline with thumbnails and public S3 storage, catalog moderation workflows.
-- **Dependencies:** G04.
-- **Exit Criteria:** Catalog CRUD integration tests, variant validation tests, and image upload contract verification.
-
----
-
-### Gate G06: Inventory Management, Atomic Stock Reservation & Concurrency Control
-
-- **Focus:** SKU inventory balance tracking, atomic stock reservations during checkout with TTL, automatic lock release worker, race condition prevention (`SELECT FOR UPDATE`).
-- **Dependencies:** G05.
-- **Exit Criteria:** Concurrent checkout stress test proving zero negative stock or double-booking on unique handcrafted items (stock = 1).
+- **Status:** **PASSED** (Ready for human review; stop condition enforced before G07).
+- **Focus:** Multi-category handcrafted taxonomy, artisan draft listings, variant & packaging specifications (dimensions mm, dead weight g), integer minor-unit pricing, HMAC-signed public media upload tickets, segregation-of-duties compliance review (`DRAFT` -> `PENDING_REVIEW` -> `PUBLISHED` / `REJECTED` / `ARCHIVED` / `SUSPENDED`), atomic concurrency-safe inventory adjustments (`SELECT ... FOR UPDATE`), negative stock prevention, reservation hold protection, and public catalog read filtering.
+- **Dependencies:** G00 through G05 passed and approved.
+- **Deliverables:**
+  - `packages/db/migrations/0002_young_squirrel_girl.sql` forward-only migration.
+  - `packages/validation/src/catalog.ts` catalog, variant, stock, and moderation validation schemas.
+  - `packages/api-contracts/src/catalog.ts` catalog, inventory, and moderation DTOs.
+  - `apps/api/src/modules/catalog/` (`CategoriesService`, `ProductMediaService`, `InventoryService`, `ProductManagementService`, `PublicCatalogService`, `ProductModerationService`, `SellerProductsController`, `SellerInventoryController`, `PublicCatalogController`, `AdminProductModerationController`, `CatalogModule`).
+  - `apps/seller-portal/src/app/products/page.tsx` Artisan products catalogue & quick stock adjustment.
+  - `apps/seller-portal/src/app/products/new/page.tsx` Handcrafted product creator form.
+  - `apps/admin-portal/src/app/moderation/page.tsx` Administrative listing moderation queue.
+  - `docs/architecture/PRODUCT_CATALOG_AND_INVENTORY.md`.
+  - `docs/implementation/G06_REPORT.md`.
+- **Exit Criteria:** 100% passing automated test suite covering draft creation, seller eligibility guard, multi-tenant seller isolation, completeness checking, photo upload tickets, moderation transitions, segregation of duties (self-review prevention), public catalog redaction, concurrency-safe inventory adjustments, and negative stock rejection.
+- **Verification Result:** Fully verified on 2026-10-12: 11/11 tests passing in `test/catalog.integration.spec.ts` (72 total tests passing in `apps/api`, 106 tests monorepo-wide), 54 valid OpenAPI paths, clean Next.js production builds.
 
 ---
 

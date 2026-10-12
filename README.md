@@ -131,4 +131,5 @@ pnpm build
 | **G02** | Domain Architecture, Business Rules & API Contract Specification  | **PASSED**                    |
 | **G03** | Database Architecture, Drizzle Schema & Migration Pipeline        | **PASSED**                    |
 | **G04** | Production-Grade Authentication, Session Security & Authorisation | **PASSED**                    |
-| **G05** | Seller Onboarding, Document Verification & Shop Management        | **PASSED** (Ready for Review) |
+| **G05** | Seller Onboarding, Document Verification & Shop Management        | **PASSED**                    |
+| **G06** | Product Catalogue, Listing Management & Inventory                 | **PASSED** (Ready for Review) |

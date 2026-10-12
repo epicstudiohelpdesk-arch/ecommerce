@@ -25,9 +25,9 @@ export default function AdminPortalHomePage() {
           <Link href="/sellers">
             <Button variant="primary">Review Pending Sellers</Button>
           </Link>
-          <Button variant="secondary" disabled>
-            Product Moderation (G06)
-          </Button>
+          <Link href="/moderation">
+            <Button variant="secondary">Product Moderation Queue</Button>
+          </Link>
         </div>
       </Card>
     </main>

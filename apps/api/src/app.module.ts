@@ -6,6 +6,7 @@ import { DatabaseModule } from './modules/database/database.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SellersModule } from './modules/sellers/sellers.module';
+import { CatalogModule } from './modules/catalog/catalog.module';
 import { CsrfProtectionMiddleware } from './common/middleware/csrf.middleware';
 
 @Module({
@@ -20,6 +21,7 @@ import { CsrfProtectionMiddleware } from './common/middleware/csrf.middleware';
     AuditModule,
     AuthModule,
     SellersModule,
+    CatalogModule,
   ],
   controllers: [AppController],
   providers: [AppService],

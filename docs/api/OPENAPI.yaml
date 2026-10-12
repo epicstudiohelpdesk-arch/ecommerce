@@ -499,6 +499,19 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
+  /catalog/categories:
+    get:
+      summary: Retrieve Active Categories Hierarchy
+      operationId: listCategories
+      tags: [Catalog]
+      responses:
+        '200':
+          description: List of active handcrafted product categories
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoriesListResponse'
+
   /catalog/products:
     get:
       summary: Public Product Search & Discovery
@@ -565,6 +578,50 @@ paths:
           $ref: '#/components/responses/NotFoundError'
 
   /seller/products:
+    get:
+      summary: List Seller Products
+      operationId: listSellerProducts
+      tags: [Catalog]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [DRAFT, PENDING_REVIEW, APPROVED, PUBLISHED, REJECTED, ARCHIVED, SUSPENDED]
+        - name: categoryId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Seller products list with inventory levels
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSellerProductsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
     post:
       summary: Create Product Draft
       operationId: createProductDraft
@@ -594,9 +651,278 @@ paths:
         '403':
           $ref: '#/components/responses/ForbiddenError'
 
+  /seller/products/media/ticket:
+    post:
+      summary: Request Pre-signed Media Upload Ticket
+      operationId: generateMediaUploadTicket
+      tags: [Catalog]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PresignedProductMediaTicketRequest'
+      responses:
+        '200':
+          description: Signed upload ticket
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresignedProductMediaTicketResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /seller/products/{id}:
+    get:
+      summary: Retrieve Seller Product Detail
+      operationId: getSellerProduct
+      tags: [Catalog]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Complete product detail for seller
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetailResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+    put:
+      summary: Update Product Listing
+      operationId: updateProduct
+      tags: [Catalog]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductRequest'
+      responses:
+        '200':
+          description: Updated product detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetailResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /seller/products/{id}/submit:
+    post:
+      summary: Submit Listing for Compliance Review
+      operationId: submitProductForModeration
+      tags: [Catalog]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Product successfully submitted for review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetailResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /seller/products/{id}/archive:
+    post:
+      summary: Archive Product Listing
+      operationId: archiveProduct
+      tags: [Catalog]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Product listing archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseSuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /seller/products/{id}/media:
+    post:
+      summary: Attach Uploaded Photo to Listing
+      operationId: attachProductMedia
+      tags: [Catalog]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttachProductMediaRequest'
+      responses:
+        '201':
+          description: Media attached
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttachProductMediaResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /seller/products/{id}/media/{mediaId}:
+    delete:
+      summary: Remove Attached Media Asset
+      operationId: removeProductMedia
+      tags: [Catalog]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: mediaId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Media removed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseSuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /seller/products/{id}/media/reorder:
+    put:
+      summary: Reorder Media Assets and Set Primary Photo
+      operationId: reorderProductMedia
+      tags: [Catalog]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required: [mediaId, displayOrder]
+                properties:
+                  mediaId:
+                    type: string
+                    format: uuid
+                  displayOrder:
+                    type: integer
+                  isPrimary:
+                    type: boolean
+      responses:
+        '200':
+          description: Media order updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseSuccessResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
   /seller/products/{productId}/submit-review:
     post:
-      summary: Submit Listing for Moderation
+      summary: Submit Listing for Moderation (Legacy Alias)
       operationId: submitProductReview
       tags: [Catalog]
       security:
@@ -616,6 +942,65 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BaseSuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /seller/inventory/adjust:
+    post:
+      summary: Concurrency-Safe Transactional Stock Adjustment
+      operationId: adjustStock
+      tags: [Catalog]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockAdjustmentRequest'
+      responses:
+        '200':
+          description: Stock adjustment committed with audit trail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockAdjustmentResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /seller/inventory/{variantId}:
+    get:
+      summary: Query Variant Inventory Levels
+      operationId: getVariantStock
+      tags: [Catalog]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: variantId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: On-hand and reservation availability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductVariantInventoryResponse'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -1055,6 +1440,66 @@ paths:
                 $ref: '#/components/schemas/BaseSuccessResponse'
         '400':
           $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /admin/catalog/moderation:
+    get:
+      summary: Query Listings Pending Compliance Moderation
+      operationId: listPendingModeration
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Pending moderation queue items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminModerationListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /admin/catalog/products/{productId}:
+    get:
+      summary: Inspect Product Detail & Moderation History
+      operationId: getProductForAdminModeration
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Complete product detail with audit and moderation history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminProductModerationDetailResponse'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -2104,3 +2549,380 @@ components:
           type: boolean
         secondaryApprovalToken:
           type: string
+
+    CategoriesListResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            type: object
+            required: [id, name, slug, displayOrder]
+            properties:
+              id:
+                type: string
+                format: uuid
+              parentId:
+                type: string
+                format: uuid
+                nullable: true
+              name:
+                type: string
+              slug:
+                type: string
+              description:
+                type: string
+                nullable: true
+              imageUrl:
+                type: string
+                nullable: true
+              commissionRateBps:
+                type: integer
+                nullable: true
+              displayOrder:
+                type: integer
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    PaginatedSellerProductsResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          required: [items, total, page, limit, totalPages]
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProductSummary'
+            total:
+              type: integer
+            page:
+              type: integer
+            limit:
+              type: integer
+            totalPages:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    ProductSummary:
+      type: object
+      required:
+        [
+          id,
+          sellerId,
+          title,
+          slug,
+          productType,
+          basePriceMinor,
+          currency,
+          moderationStatus,
+          isActive,
+          totalStock,
+          createdAt,
+        ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        sellerId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        slug:
+          type: string
+        productType:
+          type: string
+        basePriceMinor:
+          type: integer
+        currency:
+          type: string
+        category:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            slug:
+              type: string
+        primaryImageUrl:
+          type: string
+          nullable: true
+        moderationStatus:
+          type: string
+        isActive:
+          type: boolean
+        totalStock:
+          type: integer
+        createdAt:
+          type: string
+        publishedAt:
+          type: string
+          nullable: true
+
+    UpdateProductRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        shortDescription:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: string
+          format: uuid
+        productType:
+          type: string
+          enum: [READY_TO_SHIP, MADE_TO_ORDER, ONE_OF_A_KIND, PERSONALIZED]
+        basePriceMinor:
+          type: integer
+        currency:
+          type: string
+        isFragile:
+          type: boolean
+        isCustomizable:
+          type: boolean
+        customizationInstructions:
+          type: string
+        productionLeadTimeDays:
+          type: integer
+        materials:
+          type: array
+          items:
+            type: string
+        techniques:
+          type: array
+          items:
+            type: string
+        careInstructions:
+          type: string
+        countryOfOrigin:
+          type: string
+
+    PresignedProductMediaTicketRequest:
+      type: object
+      required: [fileName, mimeType, fileSizeBytes]
+      properties:
+        fileName:
+          type: string
+        mimeType:
+          type: string
+          enum: [image/jpeg, image/png, image/webp]
+        fileSizeBytes:
+          type: integer
+          maximum: 10485760
+
+    PresignedProductMediaTicketResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          required: [mediaId, storagePath, presignedUploadUrl, expiresInSeconds]
+          properties:
+            mediaId:
+              type: string
+            storagePath:
+              type: string
+            presignedUploadUrl:
+              type: string
+            expiresInSeconds:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    AttachProductMediaRequest:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+        thumbnailUrl:
+          type: string
+        altText:
+          type: string
+        displayOrder:
+          type: integer
+        isPrimary:
+          type: boolean
+        variantId:
+          type: string
+          format: uuid
+
+    AttachProductMediaResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            productId:
+              type: string
+            url:
+              type: string
+            displayOrder:
+              type: integer
+            isPrimary:
+              type: boolean
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    StockAdjustmentRequest:
+      type: object
+      required: [variantId, quantityDelta, reason]
+      properties:
+        variantId:
+          type: string
+          format: uuid
+        quantityDelta:
+          type: integer
+        reason:
+          type: string
+          enum:
+            [
+              MANUAL_CORRECTION,
+              RECEIPT,
+              BREAKAGE,
+              SALE_COMMITTED,
+              RETURN_RESTOCK,
+              AUDIT_DISCREPANCY,
+            ]
+        notes:
+          type: string
+
+    StockAdjustmentResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            variantId:
+              type: string
+            previousOnHand:
+              type: integer
+            newOnHand:
+              type: integer
+            quantityDelta:
+              type: integer
+            reason:
+              type: string
+            adjustedAt:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    ProductVariantInventoryResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            quantityOnHand:
+              type: integer
+            quantityReserved:
+              type: integer
+            availableQuantity:
+              type: integer
+            isUnlimited:
+              type: boolean
+            lowStockThreshold:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    AdminModerationListResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  title:
+                    type: string
+                  sellerName:
+                    type: string
+                  shopName:
+                    type: string
+                  moderationStatus:
+                    type: string
+            total:
+              type: integer
+            page:
+              type: integer
+            limit:
+              type: integer
+            totalPages:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    AdminProductModerationDetailResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            product:
+              type: object
+            category:
+              type: object
+            seller:
+              type: object
+            shop:
+              type: object
+            media:
+              type: array
+              items:
+                type: object
+            variants:
+              type: array
+              items:
+                type: object
+            moderationHistory:
+              type: array
+              items:
+                type: object
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'

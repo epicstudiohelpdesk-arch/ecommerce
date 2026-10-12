@@ -27,9 +27,9 @@ export default function SellerPortalHomePage() {
           <Link href="/onboarding">
             <Button variant="primary">Start Onboarding Flow</Button>
           </Link>
-          <Button variant="secondary" disabled>
-            Product Catalog (G06)
-          </Button>
+          <Link href="/products">
+            <Button variant="secondary">Product Catalog & Inventory</Button>
+          </Link>
         </div>
       </Card>
     </main>

@@ -15,6 +15,13 @@
       "when": 1791780944990,
       "tag": "0001_sharp_riptide",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791782782206,
+      "tag": "0002_young_squirrel_girl",
+      "breakpoints": true
     }
   ]
 }

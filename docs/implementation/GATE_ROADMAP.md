@@ -165,9 +165,20 @@ Every gate is an auditable milestone governed by the following rules:
 
 ### Gate G05: Seller Onboarding, Document Verification & Shop Management
 
-- **Status:** **PENDING APPROVAL** (Next Gate; awaiting explicit human approval of G04).
-- **Focus:** Artisan application workflow, legal business info ingestion, secure private S3 document upload for tax/identity records, seller approval state machine (`DRAFT` -> `PENDING_REVIEW` -> `VERIFIED` / `REJECTED`).
-- **Dependencies:** G04 approved.
+- **Status:** **PASSED** (Ready for human review; stop condition enforced before G06).
+- **Focus:** Artisan application workflow, legal business info ingestion, secure private document storage integration for KYC records, seller approval state machine (`DRAFT` -> `PENDING_REVIEW` -> `VERIFIED` / `REJECTED` / `SUSPENDED`), role promotions (`SELLER_APPLICANT` -> `APPROVED_SELLER`), segregation-of-duties review workspace in `admin-portal`, onboarding wizard in `seller-portal`, and `SellerEligibilityService` contracts.
+- **Dependencies:** G00 through G04 approved.
+- **Deliverables:**
+  - `packages/db/migrations/0001_sharp_riptide.sql` forward-only migration
+  - `packages/validation/src/seller.ts` Zod validation schemas
+  - `packages/api-contracts/src/seller.ts` API contracts and DTOs
+  - `apps/api/src/modules/sellers/` (`SellerOnboardingService`, `SellerReviewService`, `SellerEligibilityService`, `SellerDocumentsStorageService`, `SellerOnboardingController`, `AdminSellerReviewController`, `SellersModule`)
+  - `apps/seller-portal/src/app/onboarding/page.tsx` Artisan onboarding wizard
+  - `apps/admin-portal/src/app/sellers/page.tsx` Administrative verification workspace
+  - `docs/architecture/SELLER_ONBOARDING.md`
+  - `docs/implementation/G05_REPORT.md`
+- **Exit Criteria:** Multi-tenant document isolation, 100% passing automated test suite covering draft saving, slug availability, KYC document upload constraints, application submission, role promotion, self-review prevention, administrative review decisions, and suspension/reinstatement.
+- **Verification Result:** Fully verified on 2026-10-12: 61 tests passing in `apps/api` (95 total tests monorepo-wide), 42 valid OpenAPI paths, clean Next.js production builds.
 - **Exit Criteria:** Tests confirming artisan document upload security (zero public bucket access), state transition validations, and seller profile creation.
 
 ---

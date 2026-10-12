@@ -130,5 +130,5 @@ pnpm build
 | **G01** | Monorepo Bootstrap, Toolchain & Shared Type System                | **PASSED**                    |
 | **G02** | Domain Architecture, Business Rules & API Contract Specification  | **PASSED**                    |
 | **G03** | Database Architecture, Drizzle Schema & Migration Pipeline        | **PASSED**                    |
-| **G04** | Production-Grade Authentication, Session Security & Authorisation | **PASSED** (Ready for Review) |
-| **G05** | Seller Onboarding, Document Verification & Shop Management        | **PENDING APPROVAL**          |
+| **G04** | Production-Grade Authentication, Session Security & Authorisation | **PASSED**                    |
+| **G05** | Seller Onboarding, Document Verification & Shop Management        | **PASSED** (Ready for Review) |

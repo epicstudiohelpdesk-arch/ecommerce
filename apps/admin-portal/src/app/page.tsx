@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Button, Badge, Card } from '@repo/ui';
 
 export default function AdminPortalHomePage() {
@@ -15,11 +16,19 @@ export default function AdminPortalHomePage() {
       </header>
 
       <Card className="text-stone-900">
-        <h2 className="text-xl font-semibold mb-2">Operational Overview</h2>
+        <h2 className="text-xl font-semibold mb-2">Artisan Verification Queue</h2>
         <p className="text-stone-600 mb-4">
-          Restricted administrative control plane for authorized operators.
+          Review pending artisan storefront applications, inspect private KYC documents, and enforce
+          compliance.
         </p>
-        <Button variant="primary">Review Pending Sellers</Button>
+        <div className="flex gap-4">
+          <Link href="/sellers">
+            <Button variant="primary">Review Pending Sellers</Button>
+          </Link>
+          <Button variant="secondary" disabled>
+            Product Moderation (G06)
+          </Button>
+        </div>
       </Card>
     </main>
   );

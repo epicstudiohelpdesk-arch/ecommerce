@@ -13,6 +13,7 @@
     "@repo/api-contracts": "workspace:*",
     "@repo/shared": "workspace:*",
     "@repo/ui": "workspace:*",
+    "@repo/validation": "workspace:*",
     "next": "15.5.27",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

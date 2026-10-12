@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { Button, Badge, Card } from '@repo/ui';
 
 export default function SellerPortalHomePage() {
@@ -15,9 +16,21 @@ export default function SellerPortalHomePage() {
       </header>
 
       <Card>
-        <h2 className="text-xl font-semibold text-stone-900 mb-2">Shop Status</h2>
-        <p className="text-stone-600 mb-4">Seller onboarding and storefront operational center.</p>
-        <Button variant="secondary">View Catalog</Button>
+        <h2 className="text-xl font-semibold text-stone-900 mb-2">
+          Shop Onboarding & Verification
+        </h2>
+        <p className="text-stone-600 mb-4">
+          Complete your artisan credentials and shop details to publish handcrafted listings and
+          begin selling.
+        </p>
+        <div className="flex gap-4">
+          <Link href="/onboarding">
+            <Button variant="primary">Start Onboarding Flow</Button>
+          </Link>
+          <Button variant="secondary" disabled>
+            Product Catalog (G06)
+          </Button>
+        </div>
       </Card>
     </main>
   );

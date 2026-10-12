@@ -64,6 +64,9 @@ export const sellerProfiles = pgTable(
     commissionRateBps: integer('commission_rate_bps').default(1000).notNull(), // 10.00%
     rejectionReason: text('rejection_reason'),
     verifiedAt: timestamp('verified_at', { withTimezone: true, mode: 'date' }),
+    submittedAt: timestamp('submitted_at', { withTimezone: true, mode: 'date' }),
+    termsAcceptedVersion: varchar('terms_accepted_version', { length: 50 }),
+    termsAcceptedAt: timestamp('terms_accepted_at', { withTimezone: true, mode: 'date' }),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
   },

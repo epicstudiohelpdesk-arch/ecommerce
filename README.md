@@ -54,6 +54,7 @@ handcrafted-marketplace/
 ## 3. Quick Start & Setup
 
 ### Clone and Install
+
 ```bash
 # Verify runtimes
 node --version # >= 20.0.0
@@ -67,6 +68,7 @@ cp .env.example .env
 ```
 
 ### Development Servers
+
 ```bash
 # Run all applications concurrently
 pnpm dev
@@ -120,8 +122,9 @@ pnpm build
 
 ## 6. Implementation Gate Status
 
-| Gate | Title | Status |
-|---|---|---|
-| **G00** | Architecture Governance & Repository Discovery | **PASSED** |
-| **G01** | Monorepo Bootstrap, Toolchain & Shared Type System | **PASSED** (Ready for Review) |
-| **G02** | Database Engine, Drizzle Schema & Migration Pipeline | **PENDING APPROVAL** |
+| Gate    | Title                                                            | Status                        |
+| ------- | ---------------------------------------------------------------- | ----------------------------- |
+| **G00** | Architecture Governance & Repository Discovery                   | **PASSED**                    |
+| **G01** | Monorepo Bootstrap, Toolchain & Shared Type System               | **PASSED**                    |
+| **G02** | Domain Architecture, Business Rules & API Contract Specification | **PASSED** (Ready for Review) |
+| **G03** | Database Schema, Drizzle Models & Migration Engine               | **PENDING APPROVAL**          |

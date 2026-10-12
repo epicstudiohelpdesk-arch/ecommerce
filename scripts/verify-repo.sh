@@ -27,6 +27,9 @@ pnpm test
 echo "[+] Building all monorepo workspaces..."
 pnpm build
 
+echo "[+] Validating OpenAPI contracts specification..."
+node scripts/validate-openapi.mjs
+
 echo "=========================================="
 echo "All Monorepo Verification Checks Passed!"
 echo "=========================================="

@@ -2,18 +2,20 @@
 
 **Project:** Handcrafted Multi-Vendor Marketplace  
 **Document Version:** 1.0.0  
-**Status:** Baseline Established (Gate G01)  
+**Status:** Baseline Established (Gate G01)
 
 ---
 
 ## 1. Prerequisites
 
 Before running the platform locally, verify the following required runtimes:
+
 - **Node.js:** `>=20.0.0` (Recommended: `v24.14.1` as pinned in `.nvmrc`)
 - **pnpm:** `>=10.0.0` (Pinned: `11.9.0`)
 - **Git:** `>=2.40.0`
 
 Check your versions:
+
 ```bash
 node --version
 pnpm --version
@@ -40,6 +42,7 @@ git --version
 ## 3. Installation & Dependency Management
 
 Install all workspace dependencies using the authoritative lockfile:
+
 ```bash
 pnpm install --frozen-lockfile
 ```
@@ -49,11 +52,13 @@ pnpm install --frozen-lockfile
 ## 4. Development Workflows
 
 Run development servers across all applications concurrently via Turborepo:
+
 ```bash
 pnpm dev
 ```
 
 Or target a specific application:
+
 ```bash
 # Start only the NestJS API
 pnpm --filter @apps/api dev
@@ -73,6 +78,7 @@ pnpm --filter @apps/admin-portal dev
 ## 5. Quality & Verification Commands
 
 Run workspace-wide tasks:
+
 ```bash
 # Check code formatting with Prettier
 pnpm format:check
@@ -94,6 +100,7 @@ pnpm build
 ```
 
 Alternatively, execute the complete local verification script:
+
 ```bash
 ./scripts/verify-repo.sh
 ```

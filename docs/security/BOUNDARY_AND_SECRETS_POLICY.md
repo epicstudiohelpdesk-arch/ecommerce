@@ -2,7 +2,7 @@
 
 **Project:** Handcrafted Multi-Vendor Marketplace  
 **Document Version:** 1.0.0  
-**Effective Date:** Gate G01  
+**Effective Date:** Gate G01
 
 ---
 
@@ -19,6 +19,7 @@ To prevent architectural degradation, circular couplings, and security leaks, pa
 ```
 
 ### Dependency Invariants
+
 1. **Frontend Packages Never Import Backend Secrets:** `@repo/ui`, `@repo/shared`, and frontend applications must never import database drivers, ORM schemas, JWT signing keys, payment provider private secrets, or administrative backend credentials.
 2. **No Database Access from Web Apps:** Browser applications (`apps/storefront`, `apps/seller-portal`, `apps/admin-portal`) must interact with business data exclusively via HTTPS calls to `apps/api`. Direct SQL connections or ORM imports from browser bundles are prohibited.
 3. **No Circular Dependencies:** A package in `packages/` cannot depend on another package that depends back on it, nor may any shared package import from `apps/*`.

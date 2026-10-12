@@ -109,10 +109,20 @@ Every gate is an auditable milestone governed by the following rules:
 
 ---
 
-### Gate G02: Database Engine, Drizzle Schema & Migration Pipeline
+### Gate G02: Domain Architecture, Business Rules & API Contract Specification
+
+- **Status:** **PASSED** (Ready for human review; stop condition enforced before G03).
+- **Focus:** Define complete domain models, handcrafted product typologies, multi-vendor order decomposition, 11 bounded contexts, explicit state machines, 11-role authorization matrix, and validated OpenAPI 3.1.0 specifications.
+- **Dependencies:** G01 passed and approved.
+- **Exit Criteria:** Validated OpenAPI document, documented state machines, zero dangling schema references, and approval before database implementation.
+- **Verification Result:** Fully verified on 2026-10-12 via `node scripts/validate-openapi.mjs` (22 paths, 108 `$ref`s verified, 0 errors).
+
+---
+
+### Gate G03: Database Engine, Drizzle Schema & Migration Pipeline
 
 - **Focus:** Set up PostgreSQL connection pools, Drizzle ORM configuration, baseline database schemas, migration runners, and local development database scripts.
-- **Dependencies:** G01.
+- **Dependencies:** G02 passed and approved.
 - **Exit Criteria:** Drizzle migrations run cleanly up and down against a local PostgreSQL instance; database connection health-check passes.
 
 ---

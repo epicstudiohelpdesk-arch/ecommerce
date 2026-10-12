@@ -1,0 +1,1304 @@
+openapi: 3.1.0
+info:
+  title: Handcrafted Multi-Vendor Marketplace API
+  version: 1.0.0
+  description: Canonical REST API contracts for the Handcrafted Multi-Vendor Marketplace platform.
+servers:
+  - url: /api/v1
+    description: Current Environment Base Path
+
+paths:
+  /auth/register:
+    post:
+      summary: Register Customer Account
+      operationId: registerCustomer
+      tags: [Authentication & Identity]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+  /auth/login:
+    post:
+      summary: Login with Credentials
+      operationId: loginUser
+      tags: [Authentication & Identity]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /auth/logout:
+    post:
+      summary: Terminate Session
+      operationId: logoutUser
+      tags: [Authentication & Identity]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Session terminated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseSuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /seller/onboarding/apply:
+    post:
+      summary: Submit Seller Onboarding Application
+      operationId: applySeller
+      tags: [Seller Management]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SellerApplicationRequest'
+      responses:
+        '201':
+          description: Application submitted for review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SellerApplicationResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+  /seller/onboarding/documents:
+    post:
+      summary: Request Pre-signed Upload URL for Private KYC Document
+      operationId: uploadKycDocument
+      tags: [Seller Management]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PresignedDocumentRequest'
+      responses:
+        '200':
+          description: Pre-signed upload ticket generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresignedDocumentResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /seller/shop:
+    get:
+      summary: Retrieve Authenticated Seller Shop Details
+      operationId: getSellerShop
+      tags: [Seller Management]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Seller shop details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SellerShopResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /catalog/products:
+    get:
+      summary: Public Product Search & Discovery
+      operationId: searchProducts
+      tags: [Catalog]
+      parameters:
+        - name: categorySlug
+          in: query
+          schema:
+            type: string
+        - name: productType
+          in: query
+          schema:
+            type: string
+            enum: [READY_TO_SHIP, MADE_TO_ORDER, ONE_OF_A_KIND, PERSONALIZED]
+        - name: minPriceMinor
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+        - name: maxPriceMinor
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Paginated catalog products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProductsResponse'
+
+  /catalog/products/{slug}:
+    get:
+      summary: Retrieve Product Details by Slug
+      operationId: getProductBySlug
+      tags: [Catalog]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Detailed product information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetailResponse'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /seller/products:
+    post:
+      summary: Create Product Draft
+      operationId: createProductDraft
+      tags: [Catalog]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductDraftRequest'
+      responses:
+        '201':
+          description: Product draft created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateProductDraftResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /seller/products/{productId}/submit-review:
+    post:
+      summary: Submit Listing for Moderation
+      operationId: submitProductReview
+      tags: [Catalog]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Submitted for moderation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseSuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /cart:
+    get:
+      summary: Retrieve Active Customer Cart
+      operationId: getCart
+      tags: [Cart & Checkout]
+      responses:
+        '200':
+          description: Customer cart with multi-seller partition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+
+  /cart/items:
+    post:
+      summary: Add Item to Cart
+      operationId: addCartItem
+      tags: [Cart & Checkout]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddToCartRequest'
+      responses:
+        '200':
+          description: Updated cart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+  /checkout/session:
+    post:
+      summary: Initialize Checkout Session with Atomic Stock Reservation
+      operationId: createCheckoutSession
+      tags: [Cart & Checkout]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCheckoutSessionRequest'
+      responses:
+        '201':
+          description: Checkout session created with active reservation hold
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutSessionResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+  /orders:
+    get:
+      summary: Retrieve Customer Orders
+      operationId: getCustomerOrders
+      tags: [Orders]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Customer order history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCustomerOrdersResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /seller/orders:
+    get:
+      summary: Retrieve Seller-Specific Sub-Orders
+      operationId: getSellerSubOrders
+      tags: [Orders]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Seller fulfillment sub-orders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSellerSubOrdersResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /seller/orders/{subOrderId}/transition:
+    post:
+      summary: Advance Sub-Order State
+      operationId: transitionSubOrder
+      tags: [Orders]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: subOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubOrderTransitionRequest'
+      responses:
+        '200':
+          description: Status transition recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseSuccessResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+  /payments/webhooks/{provider}:
+    post:
+      summary: Ingest Payment Gateway Webhook Event
+      operationId: handlePaymentWebhook
+      tags: [Payments & Finance]
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [stripe, razorpay]
+        - name: X-Signature
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Webhook received and processed idempotently
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+                    example: true
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /seller/finance/balance:
+    get:
+      summary: Retrieve Artisan Financial Balance Statement
+      operationId: getSellerBalance
+      tags: [Payments & Finance]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Detailed seller ledger balances
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SellerBalanceResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /seller/orders/{subOrderId}/shipment/book:
+    post:
+      summary: Book Shipment & Generate Carrier Waybill
+      operationId: bookShipment
+      tags: [Shipping]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: subOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookShipmentRequest'
+      responses:
+        '201':
+          description: Shipment booked and waybill generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookShipmentResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+  /admin/sellers/{sellerId}/review:
+    post:
+      summary: Review & Approve/Reject Artisan Application
+      operationId: reviewSellerApplication
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: sellerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminReviewSellerRequest'
+      responses:
+        '200':
+          description: Decision committed and audited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseSuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /admin/catalog/products/{productId}/moderate:
+    post:
+      summary: Moderate Handcrafted Product Listing
+      operationId: moderateProduct
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminModerateProductRequest'
+      responses:
+        '200':
+          description: Moderation outcome recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseSuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /admin/finance/refunds/{subOrderId}/execute:
+    post:
+      summary: Execute High-Value Refund with Dual-Approval
+      operationId: executeAdminRefund
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminExecuteRefundRequest'
+      responses:
+        '200':
+          description: Refund executed and ledger adjusted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseSuccessResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: refreshToken
+
+  parameters:
+    IdempotencyKeyHeader:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: Unique identifier for mutation idempotency.
+
+  responses:
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    UnauthorizedError:
+      description: Authentication credentials missing or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    ForbiddenError:
+      description: Access forbidden for actor role or tenant boundaries
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    NotFoundError:
+      description: Requested entity does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    ConflictError:
+      description: State conflict, concurrency error, or inventory exhausted
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+
+  schemas:
+    ApiResponseMeta:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        correlationId:
+          type: string
+
+    ApiErrorDetail:
+      type: object
+      required: [code, message, timestamp]
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+        correlationId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    ApiErrorResponse:
+      type: object
+      required: [success, error]
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          $ref: '#/components/schemas/ApiErrorDetail'
+
+    BaseSuccessResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    RegisterRequest:
+      type: object
+      required: [email, password, fullName]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 12
+        fullName:
+          type: string
+          minLength: 2
+        phone:
+          type: string
+
+    RegisterResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            userId:
+              type: string
+              format: uuid
+            email:
+              type: string
+            requiresEmailVerification:
+              type: boolean
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    LoginResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            user:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                email:
+                  type: string
+                roles:
+                  type: array
+                  items:
+                    type: string
+            accessToken:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    SellerApplicationRequest:
+      type: object
+      required:
+        [legalName, businessType, taxId, shopName, shopSlug, craftDescription, pickupAddress]
+      properties:
+        legalName:
+          type: string
+        businessType:
+          type: string
+          enum: [INDIVIDUAL, SOLE_PROPRIETORSHIP, REGISTERED_COMPANY]
+        taxId:
+          type: string
+        shopName:
+          type: string
+        shopSlug:
+          type: string
+        craftDescription:
+          type: string
+        pickupAddress:
+          type: object
+          required: [streetAddress, city, state, postalCode, country]
+          properties:
+            streetAddress:
+              type: string
+            city:
+              type: string
+            state:
+              type: string
+            postalCode:
+              type: string
+            country:
+              type: string
+
+    SellerApplicationResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            sellerId:
+              type: string
+              format: uuid
+            status:
+              type: string
+              example: UNDER_REVIEW
+            submittedAt:
+              type: string
+              format: date-time
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    PresignedDocumentRequest:
+      type: object
+      required: [documentType, fileName, mimeType, fileSizeBytes]
+      properties:
+        documentType:
+          type: string
+          enum: [GOVERNMENT_ID, TAX_CERTIFICATE, BANK_PROOF]
+        fileName:
+          type: string
+        mimeType:
+          type: string
+        fileSizeBytes:
+          type: integer
+          maximum: 10485760
+
+    PresignedDocumentResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            documentId:
+              type: string
+              format: uuid
+            presignedUploadUrl:
+              type: string
+            expiresInSeconds:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    SellerShopResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            shopId:
+              type: string
+              format: uuid
+            shopName:
+              type: string
+            shopSlug:
+              type: string
+            status:
+              type: string
+            verificationStatus:
+              type: string
+
+    PaginatedProductsResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  title:
+                    type: string
+                  slug:
+                    type: string
+                  productType:
+                    type: string
+                  basePriceMinor:
+                    type: integer
+                  currency:
+                    type: string
+                  shopName:
+                    type: string
+            total:
+              type: integer
+            page:
+              type: integer
+            limit:
+              type: integer
+            totalPages:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    ProductDetailResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            title:
+              type: string
+            slug:
+              type: string
+            description:
+              type: string
+            productType:
+              type: string
+            basePriceMinor:
+              type: integer
+            currency:
+              type: string
+            materials:
+              type: array
+              items:
+                type: string
+            dimensionsMm:
+              type: object
+            weightGrams:
+              type: integer
+            productionLeadDays:
+              type: integer
+            isFragile:
+              type: boolean
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    CreateProductDraftRequest:
+      type: object
+      required: [title, description, categoryId, productType, basePriceMinor, currency, materials]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        categoryId:
+          type: string
+        productType:
+          type: string
+          enum: [READY_TO_SHIP, MADE_TO_ORDER, ONE_OF_A_KIND, PERSONALIZED]
+        basePriceMinor:
+          type: integer
+          minimum: 1
+        currency:
+          type: string
+          default: USD
+        materials:
+          type: array
+          items:
+            type: string
+        variants:
+          type: array
+          items:
+            type: object
+            required: [sku, name, priceMinor]
+            properties:
+              sku:
+                type: string
+              name:
+                type: string
+              priceMinor:
+                type: integer
+              initialStock:
+                type: integer
+
+    CreateProductDraftResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            productId:
+              type: string
+              format: uuid
+            status:
+              type: string
+              example: DRAFT
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    AddToCartRequest:
+      type: object
+      required: [variantId, quantity]
+      properties:
+        variantId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+        customizationPrompt:
+          type: string
+          maxLength: 500
+
+    CartResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            cartId:
+              type: string
+            itemsCount:
+              type: integer
+            totalEstimatedMinor:
+              type: integer
+            sellerGroups:
+              type: array
+              items:
+                type: object
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    CreateCheckoutSessionRequest:
+      type: object
+      required: [shippingAddressId]
+      properties:
+        shippingAddressId:
+          type: string
+          format: uuid
+        couponCode:
+          type: string
+
+    CheckoutSessionResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            checkoutSessionId:
+              type: string
+            pricingSnapshotId:
+              type: string
+            reservationExpiresAt:
+              type: string
+              format: date-time
+            totalPayableMinor:
+              type: integer
+            currency:
+              type: string
+            paymentClientSecret:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    PaginatedCustomerOrdersResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+            total:
+              type: integer
+            page:
+              type: integer
+            limit:
+              type: integer
+            totalPages:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    PaginatedSellerSubOrdersResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+            total:
+              type: integer
+            page:
+              type: integer
+            limit:
+              type: integer
+            totalPages:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    SubOrderTransitionRequest:
+      type: object
+      required: [targetStatus]
+      properties:
+        targetStatus:
+          type: string
+          enum: [IN_PRODUCTION, READY_FOR_PICKUP, CANCELLED]
+        notes:
+          type: string
+
+    SellerBalanceResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            currency:
+              type: string
+            availablePayoutMinor:
+              type: integer
+            pendingEscrowMinor:
+              type: integer
+            heldDisputeMinor:
+              type: integer
+            lifetimeEarningsMinor:
+              type: integer
+            nextScheduledPayoutDate:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    BookShipmentRequest:
+      type: object
+      required: [packageWeightGrams, packageDimensionsMm, pickupDate]
+      properties:
+        packageWeightGrams:
+          type: integer
+          minimum: 1
+        packageDimensionsMm:
+          type: object
+          required: [length, width, height]
+          properties:
+            length:
+              type: integer
+            width:
+              type: integer
+            height:
+              type: integer
+        pickupDate:
+          type: string
+          format: date
+
+    BookShipmentResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            shipmentId:
+              type: string
+            carrier:
+              type: string
+            waybillNumber:
+              type: string
+            shippingLabelPdfUrl:
+              type: string
+            pickupScheduledDate:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    AdminReviewSellerRequest:
+      type: object
+      required: [decision]
+      properties:
+        decision:
+          type: string
+          enum: [APPROVED, REJECTED]
+        reasonNotes:
+          type: string
+
+    AdminModerateProductRequest:
+      type: object
+      required: [decision, reasonCode]
+      properties:
+        decision:
+          type: string
+          enum: [APPROVED, REJECTED]
+        reasonCode:
+          type: string
+        notes:
+          type: string
+
+    AdminExecuteRefundRequest:
+      type: object
+      required: [amountMinor, reason, secondaryApprovalToken]
+      properties:
+        amountMinor:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+        restockInventory:
+          type: boolean
+        secondaryApprovalToken:
+          type: string

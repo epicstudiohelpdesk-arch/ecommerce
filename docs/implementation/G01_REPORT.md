@@ -3,7 +3,7 @@
 **Project:** Handcrafted Multi-Vendor Marketplace  
 **Gate:** G01 (Repository Foundation & Toolchain)  
 **Execution Timestamp:** 2026-10-12  
-**Assessor:** Principal Software Architect & Release Engineer  
+**Assessor:** Principal Software Architect & Release Engineer
 
 ---
 
@@ -12,10 +12,12 @@
 Gate G01 has been executed with strict scope discipline, zero scope creep, and verifiable terminal evidence. The repository has been structured as a production-grade **pnpm monorepo** orchestrated by **Turborepo** and backed by strict **TypeScript 5.x** settings.
 
 All 4 target applications and 5 shared domain packages have been scaffolded:
+
 - **Applications:** `apps/api` (NestJS 11), `apps/storefront` (Next.js 15), `apps/seller-portal` (Next.js 15), `apps/admin-portal` (Next.js 15)
 - **Shared Packages:** `@repo/ui` (Design foundations), `@repo/config` (Toolchain presets), `@repo/validation` (Zod schemas), `@repo/api-contracts` (Response envelopes), `@repo/shared` (Integer money arithmetic & Result monad)
 
 All verification tasks executed cleanly:
+
 - Strict frozen lockfile verification: **PASSED** (`pnpm install --frozen-lockfile`)
 - Prettier formatting verification: **PASSED** (`pnpm format:check`)
 - ESLint static analysis across 9 workspaces: **PASSED** (`pnpm lint`)
@@ -99,6 +101,7 @@ handcrafted-marketplace/
 ## 4. Files Created, Modified and Preserved
 
 ### Files Preserved from G00:
+
 - `docs/architecture/PROJECT_CONSTITUTION.md`
 - `docs/architecture/BASELINE_ARCHITECTURE.md`
 - `docs/architecture/DECISION_REGISTER.md`
@@ -106,9 +109,11 @@ handcrafted-marketplace/
 - `docs/implementation/G00_REPORT.md`
 
 ### Files Modified:
+
 - `docs/implementation/GATE_ROADMAP.md` (Updated with verified G01 completion status)
 
 ### Files Created:
+
 - Root Tooling: `.editorconfig`, `.gitignore`, `.npmrc`, `.nvmrc`, `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `turbo.json`, `tsconfig.base.json`, `eslint.config.mjs`, `prettier.config.mjs`, `.prettierignore`, `.env.example`, `README.md`.
 - CI & Scripts: `.github/workflows/ci.yml`, `scripts/verify-repo.sh`.
 - Documentation: `docs/operations/LOCAL_DEVELOPMENT.md`, `docs/security/BOUNDARY_AND_SECRETS_POLICY.md`, `docs/implementation/G01_REPORT.md`.
@@ -128,18 +133,18 @@ handcrafted-marketplace/
 
 ## 5. Dependency and Version Decisions
 
-| Dependency | Chosen Version | Rationale |
-|---|---|---|
-| `pnpm` | `11.9.0` | Pinned package manager version matching host runtime. |
-| `turbo` | `2.11.7` (resolved `^2.4.4`) | High-performance monorepo build caching and task orchestration. |
-| `typescript` | `5.9.3` (resolved `^5.7.3`) | Latest TypeScript supporting bundler module resolution and strict checks. |
-| `next` | `15.5.27` | Stable Next.js 15 App Router with optimized server rendering and static export. |
-| `react` & `react-dom` | `19.0.0` | Production React 19 paired with Next.js 15. |
-| `@nestjs/core` & `@nestjs/common` | `11.0.10` | Modular monolith backend architecture with Express platform adapter. |
-| `zod` | `3.25.76` (resolved `^3.24.2`) | Reliable, runtime type validation for boundaries and DTOs. |
-| `vitest` | `3.2.7` (resolved `^3.0.5`) | Ultra-fast unit testing running directly against TypeScript sources. |
-| `eslint` | `9.39.5` + `typescript-eslint 8.71.1` | Modern ESLint Flat Config with recommended TypeScript rules. |
-| `prettier` | `3.9.10` (resolved `^3.5.0`) | Consistent formatting across markdown, json, yaml, and typescript. |
+| Dependency                        | Chosen Version                        | Rationale                                                                       |
+| --------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------- |
+| `pnpm`                            | `11.9.0`                              | Pinned package manager version matching host runtime.                           |
+| `turbo`                           | `2.11.7` (resolved `^2.4.4`)          | High-performance monorepo build caching and task orchestration.                 |
+| `typescript`                      | `5.9.3` (resolved `^5.7.3`)           | Latest TypeScript supporting bundler module resolution and strict checks.       |
+| `next`                            | `15.5.27`                             | Stable Next.js 15 App Router with optimized server rendering and static export. |
+| `react` & `react-dom`             | `19.0.0`                              | Production React 19 paired with Next.js 15.                                     |
+| `@nestjs/core` & `@nestjs/common` | `11.0.10`                             | Modular monolith backend architecture with Express platform adapter.            |
+| `zod`                             | `3.25.76` (resolved `^3.24.2`)        | Reliable, runtime type validation for boundaries and DTOs.                      |
+| `vitest`                          | `3.2.7` (resolved `^3.0.5`)           | Ultra-fast unit testing running directly against TypeScript sources.            |
+| `eslint`                          | `9.39.5` + `typescript-eslint 8.71.1` | Modern ESLint Flat Config with recommended TypeScript rules.                    |
+| `prettier`                        | `3.9.10` (resolved `^3.5.0`)          | Consistent formatting across markdown, json, yaml, and typescript.              |
 
 ---
 
@@ -162,31 +167,34 @@ handcrafted-marketplace/
 
 ## 8. Commands Executed and Actual Results
 
-| Command | Objective | Actual Terminal Outcome | Status |
-|---|---|---|---|
-| `node --version` | Verify Node.js runtime | `v24.14.1` | Verified |
-| `pnpm --version` | Verify pnpm version | `11.9.0` | Verified |
-| `git status` | Verify Git branch | `On branch main` | Verified |
-| `pnpm install --frozen-lockfile` | Frozen lockfile dependency resolution | Scope: 10 projects, lockfile up to date | PASSED (Exit 0) |
-| `pnpm format:check` | Prettier code style verification | `All matched files use Prettier code style!` | PASSED (Exit 0) |
-| `pnpm lint` | ESLint static analysis across workspaces | 9/9 packages checked, 0 errors, 0 warnings | PASSED (Exit 0) |
-| `pnpm typecheck` | Strict TypeScript compilation check | 8/8 packages checked, 0 type errors | PASSED (Exit 0) |
-| `pnpm test` | Automated Vitest test suite execution | 4/4 suites passed (12/12 tests passing) | PASSED (Exit 0) |
-| `pnpm build` | Production build of all apps and packages | 8/8 builds succeeded (3 Next.js apps, 1 NestJS app, 4 packages) | PASSED (Exit 0) |
-| `./scripts/verify-repo.sh` | End-to-end local CI verification | Complete verification passed without errors | PASSED (Exit 0) |
+| Command                          | Objective                                 | Actual Terminal Outcome                                         | Status          |
+| -------------------------------- | ----------------------------------------- | --------------------------------------------------------------- | --------------- |
+| `node --version`                 | Verify Node.js runtime                    | `v24.14.1`                                                      | Verified        |
+| `pnpm --version`                 | Verify pnpm version                       | `11.9.0`                                                        | Verified        |
+| `git status`                     | Verify Git branch                         | `On branch main`                                                | Verified        |
+| `pnpm install --frozen-lockfile` | Frozen lockfile dependency resolution     | Scope: 10 projects, lockfile up to date                         | PASSED (Exit 0) |
+| `pnpm format:check`              | Prettier code style verification          | `All matched files use Prettier code style!`                    | PASSED (Exit 0) |
+| `pnpm lint`                      | ESLint static analysis across workspaces  | 9/9 packages checked, 0 errors, 0 warnings                      | PASSED (Exit 0) |
+| `pnpm typecheck`                 | Strict TypeScript compilation check       | 8/8 packages checked, 0 type errors                             | PASSED (Exit 0) |
+| `pnpm test`                      | Automated Vitest test suite execution     | 4/4 suites passed (12/12 tests passing)                         | PASSED (Exit 0) |
+| `pnpm build`                     | Production build of all apps and packages | 8/8 builds succeeded (3 Next.js apps, 1 NestJS app, 4 packages) | PASSED (Exit 0) |
+| `./scripts/verify-repo.sh`       | End-to-end local CI verification          | Complete verification passed without errors                     | PASSED (Exit 0) |
 
 ---
 
 ## 9. Test, Type-Check, Lint and Build Outcomes
 
 ### Test Suites (Vitest):
+
 1. `@repo/shared`: 6/6 tests passing (currency conversion to minor units, from minor units, NaN protection, formatting, Result monad `ok`/`err`).
 2. `@repo/validation`: 3/3 tests passing (UUID schema validation, email normalization/trimming, pagination query coercion and bounds).
 3. `@repo/api-contracts`: 2/2 tests passing (success envelope structure with metadata correlation IDs, error envelope structure).
 4. `@apps/api`: 1/1 tests passing (`AppController` and `AppService` health check response conformity).
+
 - **Total Tests:** 12 passing, 0 failing.
 
 ### Production Builds:
+
 1. `@repo/shared`: Built successfully via `tsc`
 2. `@repo/ui`: Built successfully via `tsc`
 3. `@repo/validation`: Built successfully via `tsc`
@@ -226,6 +234,7 @@ handcrafted-marketplace/
 
 **Justification:**
 All mandatory requirements for Gate G01 have been satisfied and verified with reproducible terminal evidence:
+
 - Repository and pnpm workspace configured with an authoritative frozen lockfile.
 - Application boundaries established (`apps/api`, `apps/storefront`, `apps/seller-portal`, `apps/admin-portal`).
 - Shared packages established with strict unidirectional dependency rules.
@@ -240,5 +249,6 @@ All mandatory requirements for Gate G01 have been satisfied and verified with re
 The next proposed gate is **G02: Database Engine, Drizzle Schema & Migration Pipeline**.
 
 Per Section 10 of the execution instructions:
+
 - **All implementation work has stopped.**
 - G02 will not begin until explicit human approval is received.

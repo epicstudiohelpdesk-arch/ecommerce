@@ -29,7 +29,21 @@ export async function seedDatabase(connectionString?: string) {
       .values([
         { name: 'SUPER_ADMIN', description: 'Platform super administrator' },
         { name: 'SELLER_OWNER', description: 'Artisan shop primary owner' },
+        { name: 'APPROVED_SELLER', description: 'Approved artisan storefront operator' },
+        { name: 'SELLER_APPLICANT', description: 'Artisan applicant under compliance review' },
+        {
+          name: 'RESTRICTED_SELLER',
+          description: 'Artisan seller under sanction or policy restriction',
+        },
         { name: 'CUSTOMER', description: 'Registered marketplace customer' },
+        { name: 'CUSTOMER_SUPPORT', description: 'Customer support staff' },
+        { name: 'MARKETPLACE_MANAGER', description: 'Marketplace operational catalog manager' },
+        {
+          name: 'FINANCE_CONTROLLER',
+          description: 'Finance controller managing payouts and reconciliation',
+        },
+        { name: 'TRUST_SAFETY', description: 'Trust & safety compliance reviewer' },
+        { name: 'READ_ONLY_ANALYST', description: 'Read-only business analytics staff' },
       ])
       .onConflictDoNothing()
       .returning();

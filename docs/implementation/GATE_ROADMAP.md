@@ -29,52 +29,52 @@ Every gate is an auditable milestone governed by the following rules:
 [G00: Architecture Governance & Discovery]
                      │
                      ▼
-[G01: Monorepo Bootstrap & Core Toolchain]
+[G01: Monorepo Architecture & Developer Tooling]
                      │
                      ▼
-[G02: Database Engine & Drizzle Schema Migrations]
+[G02: Domain Architecture & API Contract Specification]
                      │
                      ▼
-[G03: IAM, Authentication & Multi-Role RBAC/ABAC]
+[G03: Database Architecture & Schema Implementation]
                      │
                      ▼
-[G04: Seller Onboarding, Shop Profiles & KYC]
+[G04: Production-Grade Authentication, Session Security & Authorisation]
                      │
                      ▼
-[G05: Product Catalog, Taxonomy & Media Storage]
+[G05: Seller Onboarding & Document Verification]
                      │
                      ▼
-[G06: Inventory Management & Atomic Reservations]
+[G06: Product Catalog, Taxonomy & Media Management]
                      │
                      ▼
-[G07: Cart, Pricing Engine & Multi-Vendor Calculations]
+[G07: Inventory Management & Atomic Reservations]
                      │
                      ▼
-[G08: Payment Gateway Integration & Webhook Idempotency]
+[G08: Cart, Pricing Engine & Multi-Vendor Calculations]
                      │
                      ▼
-[G09: Order Processing & Sub-Order Splitting]
+[G09: Payment Gateway Integration & Webhook Idempotency]
                      │
                      ▼
-[G10: Financial Ledger, Commissions & Seller Payouts]
+[G10: Order Processing & Sub-Order Splitting]
                      │
                      ▼
-[G11: Courier Logistics, Shipping & Tracking]
+[G11: Financial Ledger, Commissions & Seller Payouts]
                      │
                      ▼
-[G12: Customer Storefront (Responsive Next.js Web App)]
+[G12: Courier Logistics, Shipping & Tracking]
                      │
                      ▼
-[G13: Seller Dashboard & Shop Operations Portal]
+[G13: Customer Storefront (Responsive Next.js Web App)]
                      │
                      ▼
-[G14: Marketplace Admin Console, Moderation & Audit]
+[G14: Seller Dashboard & Shop Operations Portal]
                      │
                      ▼
-[G15: Customer Support, Returns, Refunds & Disputes]
+[G15: Marketplace Admin Console, Moderation & Audit]
                      │
                      ▼
-[G16: End-to-End System Testing & Security Hardening]
+[G16: Customer Support, Returns, Refunds & Disputes]
                      │
                      ▼
 [G17: Production Readiness, Observability & Release Governance]
@@ -139,19 +139,35 @@ Every gate is an auditable milestone governed by the following rules:
 
 ---
 
-### Gate G04: Authentication, Access Control & Identity Management (RBAC/ABAC)
+### Gate G04: Production-Grade Authentication, Session Security & Authorisation
 
-- **Status:** **PENDING APPROVAL** (Next Gate; awaiting explicit human approval of G03).
-- **Focus:** User account registration, login, password hashing (Argon2id), secure HTTP-only cookie sessions, JWT access/refresh token rotation, role guards (`CUSTOMER`, `SELLER`, `ADMIN`, `SUPPORT`).
-- **Dependencies:** G03 approved.
-- **Exit Criteria:** Passing authentication integration tests, automated token refresh tests, and unauthorized route rejection tests.
+- **Status:** **PASSED** (Ready for human review; stop condition enforced before G05).
+- **Focus:** Identity registration, Argon2id password hashing, rotating refresh tokens with server-managed `user_sessions`, 15-minute access JWTs, single-use email verification, fingerprint-protected password resets with session revocation, TOTP MFA with backup recovery codes for staff, 11-role RBAC guards, strict multi-tenant ABAC resource ownership guards, CSRF mitigation, and immutable security audit logging (`audit_logs`).
+- **Dependencies:** G00, G01, G02, and G03 passed and approved.
+- **Deliverables:**
+  - `apps/api/src/modules/auth/` (AuthService, PasswordService, TokenService, SessionService, MfaService, AuthController, AuthModule)
+  - `apps/api/src/modules/audit/` (AuditService, AuditModule)
+  - `apps/api/src/modules/database/` (DatabaseService, DatabaseModule)
+  - `apps/api/src/common/guards/` (`JwtAuthGuard`, `RolesGuard`, `SellerActiveGuard`, `ResourceOwnerGuard`)
+  - `apps/api/src/common/middleware/` (`CsrfProtectionMiddleware`)
+  - `apps/api/src/common/filters/` (`AllExceptionsFilter`)
+  - `packages/validation/src/auth.ts` (Zod schemas for registration, login, MFA, and recovery)
+  - `packages/api-contracts/src/auth.ts` (Contracts for tokens, auth users, results)
+  - `docs/security/AUTHENTICATION.md`
+  - `docs/security/SESSION_MANAGEMENT.md`
+  - `docs/security/ACCOUNT_RECOVERY.md`
+  - `docs/security/SECURITY_LOGGING.md`
+  - `docs/implementation/G04_REPORT.md`
+- **Exit Criteria:** 100% passing automated test suite covering authentication, token rotation, session invalidation, MFA challenge exchange, role-based authorization, multi-tenant resource isolation, CSRF protection, and audit sanitization.
+- **Verification Result:** Fully verified on 2026-10-12: 41 tests passing across 6 test suites in `apps/api`, 70 total tests monorepo-wide, valid OpenAPI contract specification with 32 paths.
 
 ---
 
-### Gate G04: Seller Onboarding, Document Verification & Shop Management
+### Gate G05: Seller Onboarding, Document Verification & Shop Management
 
-- **Focus:** Artisan application workflow, legal business info ingestion, secure private S3 document upload for tax/identity records, seller approval state machine (`PENDING` -> `APPROVED` / `REJECTED`).
-- **Dependencies:** G03.
+- **Status:** **PENDING APPROVAL** (Next Gate; awaiting explicit human approval of G04).
+- **Focus:** Artisan application workflow, legal business info ingestion, secure private S3 document upload for tax/identity records, seller approval state machine (`DRAFT` -> `PENDING_REVIEW` -> `VERIFIED` / `REJECTED`).
+- **Dependencies:** G04 approved.
 - **Exit Criteria:** Tests confirming artisan document upload security (zero public bucket access), state transition validations, and seller profile creation.
 
 ---

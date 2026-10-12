@@ -13,18 +13,30 @@
   "dependencies": {
     "@nestjs/common": "^11.0.10",
     "@nestjs/core": "^11.0.10",
+    "@nestjs/jwt": "^12.0.2",
+    "@nestjs/passport": "^12.0.0",
     "@nestjs/platform-express": "^11.0.10",
+    "@nestjs/throttler": "^6.7.1",
     "@repo/api-contracts": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/shared": "workspace:*",
     "@repo/validation": "workspace:*",
+    "argon2": "^0.45.1",
+    "cookie-parser": "^1.4.7",
+    "drizzle-orm": "^0.45.4",
+    "otplib": "^13.5.0",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "postgres": "^3.4.9",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
     "@nestjs/testing": "^11.0.10",
+    "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.0",
     "@types/node": "^22.13.4",
+    "@types/passport-jwt": "^4.0.1",
     "typescript": "^5.7.3",
     "vitest": "^3.0.5"
   }

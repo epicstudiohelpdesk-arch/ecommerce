@@ -72,6 +72,211 @@ paths:
         '401':
           $ref: '#/components/responses/UnauthorizedError'
 
+  /auth/me:
+    get:
+      summary: Retrieve Authenticated User Profile & Roles
+      operationId: getAuthMe
+      tags: [Authentication & Identity]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: User profile and permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/refresh:
+    post:
+      summary: Refresh Access Token with Token Rotation
+      operationId: refreshToken
+      tags: [Authentication & Identity]
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Access token refreshed and refresh token rotated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefreshResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/verify-email:
+    post:
+      summary: Verify Account Email Address
+      operationId: verifyEmail
+      tags: [Authentication & Identity]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyEmailRequest'
+      responses:
+        '200':
+          description: Email verified successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseSuccessResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/forgot-password:
+    post:
+      summary: Request Account Password Reset
+      operationId: forgotPassword
+      tags: [Authentication & Identity]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Generic confirmation response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseSuccessResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/reset-password:
+    post:
+      summary: Reset Account Password with Token
+      operationId: resetPassword
+      tags: [Authentication & Identity]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset completed and sessions revoked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseSuccessResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+
+  /auth/mfa/challenge:
+    post:
+      summary: Exchange MFA Challenge Ticket with TOTP Code
+      operationId: mfaChallenge
+      tags: [Authentication & Identity]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MfaChallengeRequest'
+      responses:
+        '200':
+          description: MFA challenge completed and tokens minted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/mfa/setup:
+    post:
+      summary: Initialize Multi-Factor TOTP Setup
+      operationId: setupMfa
+      tags: [Authentication & Identity]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Secret and otpauth URL generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MfaSetupResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/mfa/verify:
+    post:
+      summary: Confirm TOTP Setup and Enable MFA
+      operationId: verifyMfa
+      tags: [Authentication & Identity]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MfaVerifyRequest'
+      responses:
+        '200':
+          description: MFA enabled and backup codes generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseSuccessResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/sessions:
+    get:
+      summary: List Active Sessions for Authenticated User
+      operationId: getUserSessions
+      tags: [Authentication & Identity]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Active session list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActiveSessionsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/sessions/revoke-all:
+    post:
+      summary: Revoke All Active Sessions for Authenticated User
+      operationId: revokeAllSessions
+      tags: [Authentication & Identity]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: All sessions invalidated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseSuccessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
   /seller/onboarding/apply:
     post:
       summary: Submit Seller Onboarding Application
@@ -812,6 +1017,166 @@ components:
                     type: string
             accessToken:
               type: string
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    UserProfileResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            email:
+              type: string
+            firstName:
+              type: string
+            lastName:
+              type: string
+            status:
+              type: string
+            isEmailVerified:
+              type: boolean
+            mfaEnabled:
+              type: boolean
+            roles:
+              type: array
+              items:
+                type: string
+            sellerId:
+              type: string
+              format: uuid
+              nullable: true
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    RefreshTokenRequest:
+      type: object
+      properties:
+        refreshToken:
+          type: string
+
+    TokenRefreshResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            accessToken:
+              type: string
+            refreshToken:
+              type: string
+            expiresIn:
+              type: integer
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    VerifyEmailRequest:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+
+    ResetPasswordRequest:
+      type: object
+      required: [token, newPassword]
+      properties:
+        token:
+          type: string
+        newPassword:
+          type: string
+          minLength: 12
+
+    MfaChallengeRequest:
+      type: object
+      required: [mfaTicket, code]
+      properties:
+        mfaTicket:
+          type: string
+        code:
+          type: string
+          minLength: 6
+          maxLength: 6
+
+    MfaSetupResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            secret:
+              type: string
+            otpauthUrl:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    MfaVerifyRequest:
+      type: object
+      required: [secret, code]
+      properties:
+        secret:
+          type: string
+        code:
+          type: string
+          minLength: 6
+          maxLength: 6
+
+    ActiveSessionsResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  ipAddress:
+                    type: string
+                    nullable: true
+                  userAgent:
+                    type: string
+                    nullable: true
+                  createdAt:
+                    type: string
+                    format: date-time
+                  expiresAt:
+                    type: string
+                    format: date-time
+            total:
+              type: integer
         meta:
           $ref: '#/components/schemas/ApiResponseMeta'
 

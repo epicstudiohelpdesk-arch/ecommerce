@@ -27,8 +27,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "node --loader ts-node/esm src/migrate.ts || tsx src/migrate.ts",
-    "db:seed": "node --loader ts-node/esm src/seed.ts || tsx src/seed.ts",
+    "db:migrate": "tsx src/migrate.ts",
+    "db:seed": "tsx src/seed.ts",
     "test": "vitest run"
   },
   "dependencies": {

@@ -1,0 +1,71 @@
+/**
+ * Master UI/UX Design System - CSS Custom Properties
+ * Handcrafted Multi-Vendor Marketplace
+ */
+
+:root {
+  /* Brand Terracotta (Pottery, Clay, Ceramics) */
+  --color-brand-terracotta-50: #FDF6F4;
+  --color-brand-terracotta-100: #FAECE8;
+  --color-brand-terracotta-200: #F4D6CE;
+  --color-brand-terracotta-300: #EAB6A7;
+  --color-brand-terracotta-400: #DC8E78;
+  --color-brand-terracotta-500: #C25E3E;
+  --color-brand-terracotta-600: #AB4E31;
+  --color-brand-terracotta-700: #8E3F27;
+  --color-brand-terracotta-800: #733423;
+  --color-brand-terracotta-900: #5E2D20;
+
+  /* Brand Warm Amber (Mustard, Woodcraft, Marigold) */
+  --color-brand-amber-50: #FFFBEB;
+  --color-brand-amber-100: #FEF3C7;
+  --color-brand-amber-200: #FDE68A;
+  --color-brand-amber-300: #FCD34D;
+  --color-brand-amber-400: #FBBF24;
+  --color-brand-amber-500: #F59E0B;
+  --color-brand-amber-600: #D97706;
+  --color-brand-amber-700: #B45309;
+  --color-brand-amber-800: #92400E;
+  --color-brand-amber-900: #78350F;
+
+  /* Brand Forest Emerald (Verified Artisan, Dyes, Nature) */
+  --color-brand-emerald-50: #ECFDF5;
+  --color-brand-emerald-100: #D1FAE5;
+  --color-brand-emerald-500: #10B981;
+  --color-brand-emerald-600: #059669;
+  --color-brand-emerald-700: #047857;
+
+  /* Surface Neutrals (Warm Stone) */
+  --color-stone-50: #FAFAF9;
+  --color-stone-100: #F5F5F4;
+  --color-stone-200: #E7E5E4;
+  --color-stone-300: #D6D3D1;
+  --color-stone-400: #A8A29E;
+  --color-stone-500: #78716C;
+  --color-stone-600: #57534E;
+  --color-stone-700: #44403C;
+  --color-stone-800: #292524;
+  --color-stone-900: #1C1917;
+  --color-stone-950: #0C0A09;
+
+  /* Typography */
+  --font-sans: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Radii */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-full: 9999px;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+  --shadow-craft: 0 12px 24px -4px rgba(194, 94, 62, 0.08), 0 4px 8px -2px rgba(28, 25, 23, 0.04);
+
+  /* Focus Indicator */
+  --focus-ring: 0 0 0 3px rgba(217, 119, 6, 0.4);
+}

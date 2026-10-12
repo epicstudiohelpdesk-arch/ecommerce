@@ -4,6 +4,7 @@ import { Header } from '../components/layout/header';
 import { Footer } from '../components/layout/footer';
 import { fetchCategories } from '../lib/api';
 import { CartProvider } from '../lib/cart-context';
+import './globals.css';
 
 export const metadata: Metadata = {
   title: {

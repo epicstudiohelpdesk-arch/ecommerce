@@ -252,6 +252,26 @@ Every gate is an auditable milestone governed by the following rules:
 
 ---
 
+### Gate G07A: Master UI/UX Design System, Design Governance & Experience Blueprint
+
+- **Status:** **PASSED** (Ready for human review; stop condition enforced).
+- **Focus:** Master UI/UX design system across all three frontend applications (`storefront`, `seller-portal`, `admin-portal`). Contemporary Indian Craftsmanship visual identity, semantic design tokens (`colors`, `typography`, `spacing`, `radii`, `elevation`, `breakpoints`, `motion`), shared Tailwind presets and PostCSS pipelines generating production CSS bundles, comprehensive `@repo/ui` component library (20 primitives covering foundations, layout, forms, overlays, tables, and feedback with complete lifecycle states), application shells (`SellerHeader`, `SellerFooter`, `AdminHeader`, `AdminFooter`), WCAG 2.2 AA accessibility compliance, responsive mobile-first rules, end-to-end user journeys, and screen specifications.
+- **Dependencies:** G00 through G08 passed and approved.
+- **Deliverables:**
+  - `packages/ui/src/tokens/` (`colors.ts`, `typography.ts`, `spacing.ts`, `theme.css`, `index.ts`)
+  - `packages/ui/src/tailwind-preset.ts`
+  - `packages/ui/src/components/` (`Container`, `Divider`, `SectionHeader`, `Button`, `IconButton`, `Badge`, `Card`, `StatusIndicator`, `Skeleton`, `LoadingSpinner`, `EmptyState`, `ErrorState`, `Alert`, `FormField`, `Input`, `Textarea`, `Select`, `Checkbox`, `Modal`, `ConfirmDialog`, `Table`, `Pagination`, `Breadcrumb`)
+  - `packages/ui/test/design-system.test.ts` (14 automated tests)
+  - `apps/storefront/` Tailwind + PostCSS pipeline & CSS bundle
+  - `apps/seller-portal/src/components/layout/` (`seller-header.tsx`, `seller-footer.tsx`) & CSS bundle
+  - `apps/admin-portal/src/components/layout/` (`admin-header.tsx`, `admin-footer.tsx`) & CSS bundle
+  - `docs/design/MASTER_DESIGN_SYSTEM.md`
+  - `docs/implementation/G07A_REPORT.md`
+- **Exit Criteria:** 100% passing automated test suites (144 tests monorepo-wide), 0 lint/typecheck errors, production Next.js CSS compilation across all 3 apps, comprehensive design system and journey blueprint documentation matching implementation, zero premature future-gate features.
+- **Verification Result:** Fully verified on 2026-10-12 via `./scripts/verify-repo.sh` (144/144 tests passing, 9/9 builds successful, 100% Prettier formatting compliant, OpenAPI 3.1 valid).
+
+---
+
 ### Gate G09: Payment Gateway Integration, Webhooks & Idempotency Engine
 
 - **Focus:** Abstract payment provider adapter (Stripe / Razorpay), payment intent generation, cryptographic webhook signature verification, atomic `payment_events` idempotency table, transition of order from `PENDING` to `PAID`.

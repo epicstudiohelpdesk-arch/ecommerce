@@ -132,4 +132,5 @@ pnpm build
 | **G03** | Database Architecture, Drizzle Schema & Migration Pipeline        | **PASSED**                    |
 | **G04** | Production-Grade Authentication, Session Security & Authorisation | **PASSED**                    |
 | **G05** | Seller Onboarding, Document Verification & Shop Management        | **PASSED**                    |
-| **G06** | Product Catalogue, Listing Management & Inventory                 | **PASSED** (Ready for Review) |
+| **G06** | Product Catalogue, Listing Management & Inventory                 | **PASSED**                    |
+| **G07** | Customer Storefront, Product Discovery & Product Details          | **PASSED** (Ready for Review) |

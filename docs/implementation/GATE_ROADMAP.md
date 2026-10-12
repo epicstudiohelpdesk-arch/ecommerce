@@ -203,11 +203,27 @@ Every gate is an auditable milestone governed by the following rules:
 
 ---
 
-### Gate G07: Customer Cart, Pricing Engine & Checkout Preparation
+### Gate G07: Customer Storefront, Product Discovery & Product Details
 
-- **Focus:** Persistent customer cart, multi-seller item grouping, platform commission estimation, shipping rate calculation, tax computation, discount code application.
-- **Dependencies:** G06.
-- **Exit Criteria:** Cart calculation tests verifying accurate penny/cent rounding and proper multi-vendor grouping.
+- **Status:** **PASSED** (Ready for human review; stop condition enforced before G08).
+- **Focus:** Responsive, accessible customer storefront in `apps/storefront` (Next.js 15, React 19). Editorial homepage hero, craft category navigation grid, catalog filtering by craft type (`READY_TO_SHIP`, `MADE_TO_ORDER`, `ONE_OF_A_KIND`, `CUSTOMISABLE`), multi-parameter sorting (`newest`, `price_asc`, `price_desc`, `title_asc`), keyword search with query refinement, comprehensive product detail page with multi-image gallery (`ProductGallery`), dynamic edition/variant selection (`VariantSelector`), workshop provenance specs (materials, techniques, care instructions, lead times, dimensions, weight), Schema.org JSON-LD structured data, SEO metadata, and explicit Gate G08 purchasing notices.
+- **Dependencies:** G00 through G06 passed and approved.
+- **Deliverables:**
+  - `apps/storefront/src/app/layout.tsx` (Root layout with header, footer, metadata, category injection)
+  - `apps/storefront/src/app/page.tsx` (Homepage editorial hero, category cards, newest creations feed)
+  - `apps/storefront/src/app/categories/page.tsx` (Categories overview directory)
+  - `apps/storefront/src/app/categories/[slug]/page.tsx` (Category listing with filters, sort, pagination)
+  - `apps/storefront/src/app/search/page.tsx` (Search results page with query form and filters)
+  - `apps/storefront/src/app/products/[slug]/page.tsx` (Product detail page with gallery, variant selector, specs, Schema.org)
+  - `apps/storefront/src/app/not-found.tsx` (Dedicated 404 handler)
+  - `apps/storefront/src/components/layout/` (`header.tsx`, `footer.tsx`)
+  - `apps/storefront/src/components/ui/` (`product-card.tsx`, `breadcrumbs.tsx`, `empty-state.tsx`, `error-state.tsx`, `product-gallery.tsx`, `variant-selector.tsx`)
+  - `apps/storefront/src/lib/api.ts` (Typed storefront API client & price formatting)
+  - `apps/storefront/test/storefront.spec.ts` (16 automated storefront tests)
+  - `docs/architecture/STOREFRONT_ARCHITECTURE.md`
+  - `docs/implementation/G07_REPORT.md`
+- **Exit Criteria:** 100% passing automated test suite covering currency formatting, URL resolution, query serialization, network resilience, availability status rules, and structured data generation; zero purchasing feature bleeding; clean production Next.js build.
+- **Verification Result:** Fully verified on 2026-10-12: 16/16 tests passing in `apps/storefront/test/storefront.spec.ts` (130 total tests passing monorepo-wide across 6 suites), clean Next.js build for all routes, valid OpenAPI contract specification with 54 paths, 100% Prettier format compliance.
 
 ---
 

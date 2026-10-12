@@ -20,6 +20,7 @@ handcrafted-marketplace/
 │   ├── config/              # Shared TypeScript base configs and toolchain presets
 │   ├── validation/          # Shared Zod validation schemas and type guards
 │   ├── api-contracts/       # Standard API response envelopes and DTO types
+│   ├── db/                  # PostgreSQL 16 schemas, Drizzle ORM, migrations, and seed fixtures
 │   └── shared/              # Environment-independent utilities (money arithmetic, Result monad)
 ├── docs/
 │   ├── architecture/        # Project constitution, baseline architecture, decision registers
@@ -27,7 +28,8 @@ handcrafted-marketplace/
 │   ├── operations/          # Local development guide and runbooks
 │   └── security/            # Boundary rules, secrets governance, and logging conventions
 ├── scripts/
-│   └── verify-repo.sh       # Comprehensive local verification script
+│   ├── verify-repo.sh       # Comprehensive local verification script
+│   └── validate-openapi.mjs # OpenAPI 3.1.0 contract validator
 ├── .github/
 │   └── workflows/ci.yml     # Automated GitHub Actions continuous integration pipeline
 ├── pnpm-workspace.yaml      # Monorepo workspace definition
@@ -45,7 +47,7 @@ handcrafted-marketplace/
 - **Language:** TypeScript 5.x (`strict: true`, `noUncheckedIndexedAccess: true`)
 - **Backend API:** NestJS 11
 - **Web Applications:** Next.js 15 (App Router) + React 19
-- **Database Engine (Future G02):** PostgreSQL 16+ with Drizzle ORM
+- **Database Engine:** PostgreSQL 16+ with Drizzle ORM (`@repo/db`)
 - **Testing Framework:** Vitest 3.x
 - **Linting & Formatting:** ESLint 9 (Flat Config) + `typescript-eslint` + Prettier 3.x
 
@@ -126,5 +128,6 @@ pnpm build
 | ------- | ---------------------------------------------------------------- | ----------------------------- |
 | **G00** | Architecture Governance & Repository Discovery                   | **PASSED**                    |
 | **G01** | Monorepo Bootstrap, Toolchain & Shared Type System               | **PASSED**                    |
-| **G02** | Domain Architecture, Business Rules & API Contract Specification | **PASSED** (Ready for Review) |
-| **G03** | Database Schema, Drizzle Models & Migration Engine               | **PENDING APPROVAL**          |
+| **G02** | Domain Architecture, Business Rules & API Contract Specification | **PASSED**                    |
+| **G03** | Database Architecture, Drizzle Schema & Migration Pipeline       | **PASSED** (Ready for Review) |
+| **G04** | Authentication, Access Control & Identity Management (RBAC/ABAC) | **PENDING APPROVAL**          |

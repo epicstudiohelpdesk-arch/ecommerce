@@ -119,18 +119,31 @@ Every gate is an auditable milestone governed by the following rules:
 
 ---
 
-### Gate G03: Database Engine, Drizzle Schema & Migration Pipeline
+### Gate G03: Production-Grade Database Architecture & Schema Implementation
 
-- **Focus:** Set up PostgreSQL connection pools, Drizzle ORM configuration, baseline database schemas, migration runners, and local development database scripts.
-- **Dependencies:** G02 passed and approved.
-- **Exit Criteria:** Drizzle migrations run cleanly up and down against a local PostgreSQL instance; database connection health-check passes.
+- **Status:** **PASSED** (Ready for human review; stop condition enforced before G04).
+- **Focus:** Translate approved G02 domain models into a production-grade relational database foundation in `@repo/db` using PostgreSQL 16+ and Drizzle ORM. Implement 44 schema tables across 11 bounded domains, composite foreign keys enforcing multi-tenant seller isolation, inventory concurrency controls, balanced double-entry ledger invariants, reproducible SQL migrations, and deterministic seed fixtures.
+- **Dependencies:** G00, G01, and G02 passed and approved.
+- **Deliverables:**
+  - `packages/db` workspace package with schemas, client, migrator, and seed fixtures.
+  - `packages/db/migrations/0000_fuzzy_mimic.sql` authoritative initial migration.
+  - `docs/architecture/DATABASE_SCHEMA.md`
+  - `docs/architecture/DATA_OWNERSHIP.md`
+  - `docs/architecture/DATABASE_INDEX_STRATEGY.md`
+  - `docs/architecture/DATABASE_SECURITY.md`
+  - `docs/architecture/MIGRATION_POLICY.md`
+  - `docs/security/DATA_RETENTION.md`
+  - `docs/implementation/G03_REPORT.md`
+- **Exit Criteria:** Reproducible migration from clean DB, 100% passing integration tests (schema, seller isolation, inventory concurrency, ledger double-entry balance), zero lint/type errors.
+- **Verification Result:** Fully verified on 2026-10-12: 44 tables migrated, 15 database integration tests passing across 4 suites, monorepo verification script passing with zero errors.
 
 ---
 
-### Gate G03: Authentication, Authorization & Identity Management (RBAC/ABAC)
+### Gate G04: Authentication, Access Control & Identity Management (RBAC/ABAC)
 
+- **Status:** **PENDING APPROVAL** (Next Gate; awaiting explicit human approval of G03).
 - **Focus:** User account registration, login, password hashing (Argon2id), secure HTTP-only cookie sessions, JWT access/refresh token rotation, role guards (`CUSTOMER`, `SELLER`, `ADMIN`, `SUPPORT`).
-- **Dependencies:** G02.
+- **Dependencies:** G03 approved.
 - **Exit Criteria:** Passing authentication integration tests, automated token refresh tests, and unauthorized route rejection tests.
 
 ---

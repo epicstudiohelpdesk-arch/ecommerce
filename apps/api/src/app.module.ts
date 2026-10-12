@@ -7,6 +7,8 @@ import { AuditModule } from './modules/audit/audit.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { SellersModule } from './modules/sellers/sellers.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
+import { CartModule } from './modules/cart/cart.module';
+import { CheckoutModule } from './modules/checkout/checkout.module';
 import { CsrfProtectionMiddleware } from './common/middleware/csrf.middleware';
 
 @Module({
@@ -22,6 +24,8 @@ import { CsrfProtectionMiddleware } from './common/middleware/csrf.middleware';
     AuthModule,
     SellersModule,
     CatalogModule,
+    CartModule,
+    CheckoutModule,
   ],
   controllers: [AppController],
   providers: [AppService],

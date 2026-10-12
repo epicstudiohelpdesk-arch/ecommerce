@@ -1,18 +1,25 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import type { ProductDetailDto, ProductVariantDto } from '@repo/api-contracts';
 import { formatMinorPrice } from '../../lib/api';
+import { useCart } from '../../lib/cart-context';
 
 interface VariantSelectorProps {
   product: ProductDetailDto;
 }
 
 export const VariantSelector: React.FC<VariantSelectorProps> = ({ product }) => {
+  const { addToCart } = useCart();
   const variants = product.variants || [];
   const initialVariantId = variants.length > 0 && variants[0] ? variants[0].id : '';
   const [selectedVariantId, setSelectedVariantId] = useState<string>(initialVariantId);
   const [quantity, setQuantity] = useState<number>(1);
+  const [customizationText, setCustomizationText] = useState<string>('');
+  const [isAdding, setIsAdding] = useState<boolean>(false);
+  const [addSuccess, setAddSuccess] = useState<boolean>(false);
+  const [addError, setAddError] = useState<string | null>(null);
 
   const selectedVariant: ProductVariantDto | undefined =
     variants.find((v) => v.id === selectedVariantId) || variants[0];
@@ -171,30 +178,102 @@ export const VariantSelector: React.FC<VariantSelectorProps> = ({ product }) => 
         </div>
       </div>
 
-      {/* Gate G08 Purchasing Notice & Purchase Action Button */}
+      {/* Customization Input if customizable */}
+      {product.isCustomizable && (
+        <div className="space-y-2">
+          <label className="block text-xs font-bold uppercase tracking-wider text-amber-900">
+            Artisan Customisation Details (Optional)
+          </label>
+          <input
+            type="text"
+            value={customizationText}
+            onChange={(e) => setCustomizationText(e.target.value)}
+            placeholder="e.g. Inscription, custom initials, preferred glaze note..."
+            maxLength={500}
+            className="w-full px-3.5 py-2.5 text-xs bg-white border border-stone-300 rounded-xl text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </div>
+      )}
+
+      {/* Cart Action Area */}
       <div className="space-y-3 pt-2">
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-900">
-          <div className="flex items-start gap-2.5">
-            <span className="text-amber-700 text-lg leading-none mt-0.5">ℹ</span>
-            <div className="text-xs space-y-1">
-              <p className="font-bold">Storefront Preview & Discovery Mode (Gate G07)</p>
-              <p className="text-amber-800 leading-relaxed">
-                Cart persistence, secure checkout, multi-vendor order splitting, and payment
-                gateways will be unlocked in <strong>Gate G08</strong>. You can browse catalogue
-                specifications, artisan craft provenance, and live workshop availability.
-              </p>
+        {addError && (
+          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-center justify-between">
+            <span>{addError}</span>
+            <button
+              type="button"
+              onClick={() => setAddError(null)}
+              className="text-rose-500 font-bold ml-2"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {addSuccess ? (
+          <div className="space-y-2">
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2">
+              <span className="text-emerald-600 font-bold">✓</span>
+              <span>Added to your shopping cart!</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setAddSuccess(false)}
+                className="py-2.5 px-4 rounded-xl text-xs font-semibold bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 transition-colors"
+              >
+                Keep Shopping
+              </button>
+              <Link
+                href="/cart"
+                className="py-2.5 px-4 rounded-xl text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white flex items-center justify-center gap-1.5 transition-colors shadow-sm"
+              >
+                <span>View Cart &bull; Checkout &rarr;</span>
+              </Link>
             </div>
           </div>
-        </div>
-
-        <button
-          type="button"
-          disabled
-          className="w-full py-3.5 px-6 rounded-xl font-semibold text-sm bg-stone-300 text-stone-600 cursor-not-allowed flex items-center justify-center gap-2 border border-stone-400/50"
-          title="Checkout functionality activates in Gate G08"
-        >
-          <span>🛍️ Add to Cart (Activating in Gate G08)</span>
-        </button>
+        ) : (
+          <button
+            type="button"
+            disabled={isOutOfStock || isAdding || !selectedVariant}
+            onClick={async () => {
+              if (!selectedVariant) return;
+              try {
+                setIsAdding(true);
+                setAddError(null);
+                await addToCart(
+                  selectedVariant.id,
+                  quantity,
+                  customizationText.trim() ? customizationText.trim() : undefined,
+                );
+                setAddSuccess(true);
+              } catch (err) {
+                setAddError((err as Error).message || 'Failed to add item to cart');
+              } finally {
+                setIsAdding(false);
+              }
+            }}
+            className={`w-full py-3.5 px-6 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-sm ${
+              isOutOfStock
+                ? 'bg-stone-200 text-stone-400 cursor-not-allowed border border-stone-300'
+                : 'bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-white border border-amber-700 cursor-pointer'
+            }`}
+          >
+            {isAdding ? (
+              <span className="flex items-center gap-2">
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Adding to Cart...
+              </span>
+            ) : isOutOfStock ? (
+              <span>Out of Stock</span>
+            ) : (
+              <span>
+                🛍️ Add to Cart &bull;{' '}
+                {formatMinorPrice(currentPriceMinor * quantity, product.currency)}
+              </span>
+            )}
+          </button>
+        )}
       </div>
     </div>
   );

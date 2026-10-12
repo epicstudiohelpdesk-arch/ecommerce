@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useCart } from '../../lib/cart-context';
 
 interface HeaderProps {
   categories?: Array<{ id: string; name: string; slug: string }>;
@@ -10,6 +11,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ categories = [] }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { itemsCount } = useCart();
 
   return (
     <header className="sticky top-0 z-40 bg-stone-900 text-stone-100 shadow-md border-b border-stone-800">
@@ -90,8 +92,22 @@ export const Header: React.FC<HeaderProps> = ({ categories = [] }) => {
 
           {/* Right Action Links */}
           <div className="hidden sm:flex items-center gap-3">
+            <Link
+              href="/cart"
+              className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-stone-800 text-stone-200 hover:text-white hover:bg-stone-700 transition-colors border border-stone-700"
+              aria-label={`Shopping cart with ${itemsCount} items`}
+            >
+              <span className="text-sm">🛍️</span>
+              <span className="text-xs font-semibold">Cart</span>
+              {itemsCount > 0 && (
+                <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-stone-900 bg-amber-400 rounded-full">
+                  {itemsCount}
+                </span>
+              )}
+            </Link>
+            <div className="h-4 w-px bg-stone-700" />
             <a
-              href="http://localhost:3002"
+              href="http://localhost:3001"
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs px-3 py-1.5 rounded-md border border-stone-700 text-stone-300 hover:text-white hover:border-stone-500 transition-colors"
@@ -100,7 +116,7 @@ export const Header: React.FC<HeaderProps> = ({ categories = [] }) => {
             </a>
             <div className="h-4 w-px bg-stone-700" />
             <a
-              href="http://localhost:3003"
+              href="http://localhost:3002"
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs px-3 py-1.5 rounded-md bg-stone-800 text-stone-300 hover:text-white transition-colors"
@@ -109,8 +125,20 @@ export const Header: React.FC<HeaderProps> = ({ categories = [] }) => {
             </a>
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Cart & Menu Buttons */}
           <div className="flex md:hidden items-center gap-2">
+            <Link
+              href="/cart"
+              className="relative p-2 text-stone-300 hover:text-white focus:outline-none"
+              aria-label={`Shopping cart with ${itemsCount} items`}
+            >
+              <span className="text-lg">🛍️</span>
+              {itemsCount > 0 && (
+                <span className="absolute top-1 right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-stone-900 bg-amber-400 rounded-full">
+                  {itemsCount}
+                </span>
+              )}
+            </Link>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 text-stone-400 hover:text-white focus:outline-none"
@@ -200,13 +228,13 @@ export const Header: React.FC<HeaderProps> = ({ categories = [] }) => {
 
           <div className="pt-2 border-t border-stone-800 flex flex-col gap-2">
             <a
-              href="http://localhost:3002"
+              href="http://localhost:3001"
               className="text-xs text-center py-2 px-3 rounded bg-amber-800 text-amber-100 font-medium hover:bg-amber-700"
             >
               Seller Studio Portal ↗
             </a>
             <a
-              href="http://localhost:3003"
+              href="http://localhost:3002"
               className="text-xs text-center py-2 px-3 rounded bg-stone-800 text-stone-300 hover:text-white"
             >
               Admin Control Center ↗

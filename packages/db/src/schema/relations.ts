@@ -1,5 +1,13 @@
 import { relations } from 'drizzle-orm';
-import { users, userSessions, roles, permissions, rolePermissions, userRoles } from './identity.js';
+import {
+  users,
+  userSessions,
+  roles,
+  permissions,
+  rolePermissions,
+  userRoles,
+  customerAddresses,
+} from './identity.js';
 import {
   sellerProfiles,
   shops,
@@ -37,9 +45,17 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   }),
   userRoles: many(userRoles),
   orders: many(customerOrders),
+  addresses: many(customerAddresses),
   reviews: many(reviews),
   supportTicketsCreated: many(supportTickets, { relationName: 'ticket_creator' }),
   disputes: many(disputes),
+}));
+
+export const customerAddressesRelations = relations(customerAddresses, ({ one }) => ({
+  customer: one(users, {
+    fields: [customerAddresses.customerId],
+    references: [users.id],
+  }),
 }));
 
 export const userSessionsRelations = relations(userSessions, ({ one }) => ({

@@ -3,7 +3,6 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
-  ConflictException,
 } from '@nestjs/common';
 import { eq, and, or, ilike, sql, count, desc, inArray } from 'drizzle-orm';
 import * as crypto from 'node:crypto';

@@ -323,20 +323,26 @@ export async function seedDatabase(connectionString?: string) {
     }
 
     // Stock for Chai Cups
-    await db.insert(s.inventoryItems).values({
-      variantId: chaiCupsVariant.id,
-      quantityOnHand: 20,
-      quantityReserved: 0,
-      lowStockThreshold: 3,
-    });
+    await db
+      .insert(s.inventoryItems)
+      .values({
+        variantId: chaiCupsVariant.id,
+        quantityOnHand: 20,
+        quantityReserved: 0,
+        lowStockThreshold: 3,
+      })
+      .onConflictDoNothing();
 
     // Stock for Coasters
-    await db.insert(s.inventoryItems).values({
-      variantId: coastersVariant.id,
-      quantityOnHand: 15,
-      quantityReserved: 0,
-      lowStockThreshold: 2,
-    });
+    await db
+      .insert(s.inventoryItems)
+      .values({
+        variantId: coastersVariant.id,
+        quantityOnHand: 15,
+        quantityReserved: 0,
+        lowStockThreshold: 2,
+      })
+      .onConflictDoNothing();
 
     // 8. Multi-Seller Customer Order Example
     const totalOrderAmount = 85000 + 120000 + 15000; // items + ₹150 shipping = ₹2,200.00

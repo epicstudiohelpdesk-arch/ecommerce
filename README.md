@@ -133,4 +133,5 @@ pnpm build
 | **G04** | Production-Grade Authentication, Session Security & Authorisation | **PASSED**                    |
 | **G05** | Seller Onboarding, Document Verification & Shop Management        | **PASSED**                    |
 | **G06** | Product Catalogue, Listing Management & Inventory                 | **PASSED**                    |
-| **G07** | Customer Storefront, Product Discovery & Product Details          | **PASSED** (Ready for Review) |
+| **G07** | Customer Storefront, Product Discovery & Product Details          | **PASSED**                    |
+| **G08** | Shopping Cart, Checkout & Order Creation Foundation               | **PASSED** (Ready for Review) |

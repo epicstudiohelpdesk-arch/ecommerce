@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Header } from '../components/layout/header';
 import { Footer } from '../components/layout/footer';
 import { fetchCategories } from '../lib/api';
+import { CartProvider } from '../lib/cart-context';
 
 export const metadata: Metadata = {
   title: {
@@ -37,9 +38,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <body className="min-h-screen bg-stone-50 text-stone-900 antialiased font-sans flex flex-col justify-between selection:bg-amber-200 selection:text-stone-900">
-        <Header categories={categories} />
-        <div className="flex-1">{children}</div>
-        <Footer categories={categories} />
+        <CartProvider>
+          <Header categories={categories} />
+          <div className="flex-1">{children}</div>
+          <Footer categories={categories} />
+        </CartProvider>
       </body>
     </html>
   );

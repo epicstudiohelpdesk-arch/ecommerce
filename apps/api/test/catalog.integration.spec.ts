@@ -25,7 +25,7 @@ describe('G06: Product Catalogue, Listing Management & Inventory Integration', (
 
   let verifiedSellerUser: { id: string; email: string };
   let verifiedSellerProfileId: string;
-  let verifiedShopId: string;
+  let _verifiedShopId: string;
 
   let unverifiedSellerUser: { id: string; email: string };
   let unverifiedSellerProfileId: string;
@@ -104,7 +104,7 @@ describe('G06: Product Catalogue, Listing Management & Inventory Integration', (
         description: 'Authentic clay pottery from Bengal artisans',
       })
       .returning();
-    verifiedShopId = shopA!.id;
+    _verifiedShopId = shopA!.id;
 
     // 2. Create Unverified Seller B
     const [userB] = await dbService.db

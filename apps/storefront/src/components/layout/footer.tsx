@@ -105,7 +105,7 @@ export const Footer: React.FC<FooterProps> = ({ categories = [] }) => {
             <ul className="space-y-2 text-xs">
               <li>
                 <a
-                  href="http://localhost:3002/onboarding"
+                  href="http://localhost:3001/onboarding"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-amber-300 transition-colors flex items-center justify-between"
@@ -116,7 +116,7 @@ export const Footer: React.FC<FooterProps> = ({ categories = [] }) => {
               </li>
               <li>
                 <a
-                  href="http://localhost:3002/products"
+                  href="http://localhost:3001/products"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-amber-300 transition-colors flex items-center justify-between"
@@ -127,7 +127,7 @@ export const Footer: React.FC<FooterProps> = ({ categories = [] }) => {
               </li>
               <li>
                 <a
-                  href="http://localhost:3003"
+                  href="http://localhost:3002"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-amber-300 transition-colors flex items-center justify-between"

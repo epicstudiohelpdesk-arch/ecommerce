@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { eq, desc, and, count } from 'drizzle-orm';
+import { eq, desc, count } from 'drizzle-orm';
 import { DatabaseService } from '../database/database.service';
 import { AuditService } from '../audit/audit.service';
 import type { AdminModerateProductInput, PaginationQuery } from '@repo/validation';

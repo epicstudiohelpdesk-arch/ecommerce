@@ -227,10 +227,35 @@ Every gate is an auditable milestone governed by the following rules:
 
 ---
 
-### Gate G08: Payment Gateway Integration, Webhooks & Idempotency Engine
+### Gate G08: Shopping Cart, Checkout & Order Creation Foundation
 
-- **Focus:** Abstract payment provider adapter (Stripe / Razorpay), payment intent generation, cryptographic webhook signature verification, atomic `payment_events` idempotency table.
-- **Dependencies:** G07.
+- **Status:** **PASSED** (Ready for human review; stop condition enforced before G09).
+- **Focus:** Shopping cart persistence (guest `sessionId` and customer `customerId`), quantity caps ($1 \le q \le 50$), deduplication and login merging, saved customer delivery address management with Indian 6-digit PIN code (`/^[1-9][0-9]{5}$/`) and 10-digit mobile number validation, server-authoritative integer minor units pricing engine (paise in INR), independent artisan shipping fee rules (₹50.00 flat per artisan, free for artisan subtotal $\ge$ ₹1,000.00), platform/seller coupon discount engine, atomic 15-minute inventory reservation hold using row-level locking (`SELECT ... FOR UPDATE`), transactional order creation splitting checkout into parent `customer_orders`, artisan `sub_orders`, immutable `order_items`, and `order_timeline_events`, strictly enforced order invariants (`paymentStatus: 'PENDING'`, `orderStatus: 'PLACED'`), idempotency protection, and storefront UI in `apps/storefront` (`/cart`, `/checkout`, `/checkout/success`, header badge, and PDP "Add to Cart" enablement).
+- **Dependencies:** G00 through G07 passed and approved.
+- **Deliverables:**
+  - `packages/db/migrations/0003_customer_addresses.sql` forward-only migration.
+  - `packages/validation/src/cart.ts` and `src/checkout.ts` validation schemas.
+  - `packages/api-contracts/src/cart.ts` and `src/checkout.ts` DTOs and contracts.
+  - `apps/api/src/modules/cart/` (`CartService`, `CartController`, `CartModule`).
+  - `apps/api/src/modules/checkout/` (`AddressService`, `AddressController`, `PricingService`, `CheckoutService`, `CheckoutController`, `CheckoutModule`).
+  - `apps/api/src/modules/catalog/inventory.service.ts` atomic reservation methods (`createReservations`, `releaseReservations`, `commitReservations`).
+  - `apps/storefront/src/lib/cart-context.tsx` (`CartProvider`, `useCart`).
+  - `apps/storefront/src/components/layout/header.tsx` live cart counter badge.
+  - `apps/storefront/src/components/ui/variant-selector.tsx` active "Add to Cart" button.
+  - `apps/storefront/src/app/cart/page.tsx` artisan-partitioned shopping cart.
+  - `apps/storefront/src/app/checkout/page.tsx` delivery address entry & order review.
+  - `apps/storefront/src/app/checkout/success/page.tsx` order confirmation view.
+  - `docs/architecture/CART_AND_CHECKOUT_ARCHITECTURE.md`.
+  - `docs/implementation/G08_REPORT.md`.
+- **Exit Criteria:** 100% passing automated test suite covering multi-vendor cart grouping, 50-qty limits, login cart merging, delivery address PIN/phone validation, integer pricing calculations, atomic stock reservations, overselling prevention, order creation, artisan sub-order partitioning, and idempotency; zero premature payment capture or ledger disbursement; clean production Next.js build.
+- **Verification Result:** Fully verified on 2026-10-12: 14/14 tests passing in `apps/api/test/cart-checkout.integration.spec.ts` (86 total tests passing in `apps/api`, 144 tests monorepo-wide across 6 suites), clean Next.js production builds for all 3 apps, valid OpenAPI specification with 54 paths, 100% Prettier format compliance.
+
+---
+
+### Gate G09: Payment Gateway Integration, Webhooks & Idempotency Engine
+
+- **Focus:** Abstract payment provider adapter (Stripe / Razorpay), payment intent generation, cryptographic webhook signature verification, atomic `payment_events` idempotency table, transition of order from `PENDING` to `PAID`.
+- **Dependencies:** G08.
 - **Exit Criteria:** Integration tests simulating duplicate, delayed, and out-of-order webhook delivery with zero duplicate ledger charges or double-fulfillments.
 
 ---

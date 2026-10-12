@@ -5,6 +5,8 @@ import { AuditService } from '../audit/audit.service';
 import type { StockAdjustmentInput } from '@repo/validation';
 import type { StockAdjustmentResultDto, ProductVariantInventoryDto } from '@repo/api-contracts';
 
+type DbTransaction = Parameters<Parameters<DatabaseService['db']['transaction']>[0]>[0];
+
 @Injectable()
 export class InventoryService {
   constructor(
@@ -129,5 +131,231 @@ export class InventoryService {
       isUnlimited: item.isUnlimited,
       lowStockThreshold: item.lowStockThreshold,
     };
+  }
+
+  /**
+   * Concurrency-safe stock reservation with 15-minute TTL.
+   * Locks variant rows in consistent order to prevent deadlocks.
+   */
+  async createReservations(
+    items: { variantId: string; quantity: number }[],
+    checkoutId: string,
+    cartId?: string,
+    ttlMinutes = 15,
+    clientTx?: DbTransaction,
+  ): Promise<string[]> {
+    const run = async (tx: DbTransaction) => {
+      // Sort items by variantId to prevent database deadlocks
+      const sortedItems = [...items].sort((a, b) => a.variantId.localeCompare(b.variantId));
+      const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
+      const createdReservationIds: string[] = [];
+
+      for (const item of sortedItems) {
+        const [inventoryRow] = await tx
+          .select()
+          .from(this.databaseService.schema.inventoryItems)
+          .where(eq(this.databaseService.schema.inventoryItems.variantId, item.variantId))
+          .for('update');
+
+        if (!inventoryRow) {
+          throw new BadRequestException(`Inventory item not found for variant ${item.variantId}`);
+        }
+
+        const available = inventoryRow.isUnlimited
+          ? 999999
+          : inventoryRow.quantityOnHand - inventoryRow.quantityReserved;
+
+        if (available < item.quantity) {
+          throw new BadRequestException(
+            `Insufficient stock for variant ${item.variantId}: requested ${item.quantity}, available ${available}`,
+          );
+        }
+
+        // Increment reserved quantity if not unlimited
+        if (!inventoryRow.isUnlimited) {
+          await tx
+            .update(this.databaseService.schema.inventoryItems)
+            .set({
+              quantityReserved: inventoryRow.quantityReserved + item.quantity,
+              updatedAt: new Date(),
+            })
+            .where(eq(this.databaseService.schema.inventoryItems.id, inventoryRow.id));
+        }
+
+        const [res] = await tx
+          .insert(this.databaseService.schema.inventoryReservations)
+          .values({
+            variantId: item.variantId,
+            checkoutId,
+            cartId: cartId ?? null,
+            quantity: item.quantity,
+            status: 'ACTIVE',
+            expiresAt,
+          })
+          .returning();
+
+        if (res) {
+          createdReservationIds.push(res.id);
+        }
+      }
+
+      return createdReservationIds;
+    };
+
+    if (clientTx) {
+      return run(clientTx);
+    }
+    return this.databaseService.db.transaction(run);
+  }
+
+  /**
+   * Release active stock reservations for a checkout session.
+   */
+  async releaseReservations(checkoutId: string, clientTx?: DbTransaction): Promise<void> {
+    const run = async (tx: DbTransaction) => {
+      const activeReservations = await tx
+        .select()
+        .from(this.databaseService.schema.inventoryReservations)
+        .where(
+          sql`${this.databaseService.schema.inventoryReservations.checkoutId} = ${checkoutId} AND ${this.databaseService.schema.inventoryReservations.status} = 'ACTIVE'`,
+        );
+
+      for (const res of activeReservations) {
+        const [inventoryRow] = await tx
+          .select()
+          .from(this.databaseService.schema.inventoryItems)
+          .where(eq(this.databaseService.schema.inventoryItems.variantId, res.variantId))
+          .for('update');
+
+        if (inventoryRow && !inventoryRow.isUnlimited) {
+          const newReserved = Math.max(0, inventoryRow.quantityReserved - res.quantity);
+          await tx
+            .update(this.databaseService.schema.inventoryItems)
+            .set({
+              quantityReserved: newReserved,
+              updatedAt: new Date(),
+            })
+            .where(eq(this.databaseService.schema.inventoryItems.id, inventoryRow.id));
+        }
+
+        await tx
+          .update(this.databaseService.schema.inventoryReservations)
+          .set({
+            status: 'RELEASED',
+            releasedAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(eq(this.databaseService.schema.inventoryReservations.id, res.id));
+      }
+    };
+
+    if (clientTx) {
+      return run(clientTx);
+    }
+    return this.databaseService.db.transaction(run);
+  }
+
+  /**
+   * Commit active stock reservations on successful checkout confirmation.
+   * Decrements on-hand and reserved quantity, records stock adjustment.
+   */
+  async commitReservations(checkoutId: string, clientTx?: DbTransaction): Promise<void> {
+    const run = async (tx: DbTransaction) => {
+      const activeReservations = await tx
+        .select()
+        .from(this.databaseService.schema.inventoryReservations)
+        .where(
+          sql`${this.databaseService.schema.inventoryReservations.checkoutId} = ${checkoutId} AND ${this.databaseService.schema.inventoryReservations.status} = 'ACTIVE'`,
+        );
+
+      for (const res of activeReservations) {
+        const [inventoryRow] = await tx
+          .select()
+          .from(this.databaseService.schema.inventoryItems)
+          .where(eq(this.databaseService.schema.inventoryItems.variantId, res.variantId))
+          .for('update');
+
+        if (inventoryRow) {
+          if (!inventoryRow.isUnlimited) {
+            const newOnHand = Math.max(0, inventoryRow.quantityOnHand - res.quantity);
+            const newReserved = Math.max(0, inventoryRow.quantityReserved - res.quantity);
+            await tx
+              .update(this.databaseService.schema.inventoryItems)
+              .set({
+                quantityOnHand: newOnHand,
+                quantityReserved: newReserved,
+                updatedAt: new Date(),
+              })
+              .where(eq(this.databaseService.schema.inventoryItems.id, inventoryRow.id));
+          }
+
+          // Insert stock adjustment audit record
+          await tx.insert(this.databaseService.schema.stockAdjustments).values({
+            variantId: res.variantId,
+            quantityDelta: -res.quantity,
+            reason: 'SALE_COMMITTED',
+            notes: `Checkout committed: ${checkoutId}`,
+          });
+        }
+
+        await tx
+          .update(this.databaseService.schema.inventoryReservations)
+          .set({
+            status: 'COMMITTED',
+            committedAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .where(eq(this.databaseService.schema.inventoryReservations.id, res.id));
+      }
+    };
+
+    if (clientTx) {
+      return run(clientTx);
+    }
+    return this.databaseService.db.transaction(run);
+  }
+
+  /**
+   * Expire stale active reservations whose TTL has elapsed.
+   */
+  async expireStaleReservations(): Promise<number> {
+    const now = new Date();
+    return this.databaseService.db.transaction(async (tx) => {
+      const staleReservations = await tx
+        .select()
+        .from(this.databaseService.schema.inventoryReservations)
+        .where(
+          sql`${this.databaseService.schema.inventoryReservations.status} = 'ACTIVE' AND ${this.databaseService.schema.inventoryReservations.expiresAt} < ${now}`,
+        );
+
+      for (const res of staleReservations) {
+        const [inventoryRow] = await tx
+          .select()
+          .from(this.databaseService.schema.inventoryItems)
+          .where(eq(this.databaseService.schema.inventoryItems.variantId, res.variantId))
+          .for('update');
+
+        if (inventoryRow && !inventoryRow.isUnlimited) {
+          const newReserved = Math.max(0, inventoryRow.quantityReserved - res.quantity);
+          await tx
+            .update(this.databaseService.schema.inventoryItems)
+            .set({
+              quantityReserved: newReserved,
+              updatedAt: new Date(),
+            })
+            .where(eq(this.databaseService.schema.inventoryItems.id, inventoryRow.id));
+        }
+
+        await tx
+          .update(this.databaseService.schema.inventoryReservations)
+          .set({
+            status: 'EXPIRED',
+            updatedAt: new Date(),
+          })
+          .where(eq(this.databaseService.schema.inventoryReservations.id, res.id));
+      }
+
+      return staleReservations.length;
+    });
   }
 }

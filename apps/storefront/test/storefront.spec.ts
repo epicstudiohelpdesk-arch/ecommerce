@@ -6,7 +6,7 @@ import {
   fetchProducts,
   fetchProductBySlug,
 } from '../src/lib/api';
-import type { ProductDetailDto, ProductSummaryDto } from '@repo/api-contracts';
+import type { ProductDetailDto } from '@repo/api-contracts';
 
 describe('Storefront Client & Utilities', () => {
   const originalEnv = process.env;
@@ -38,10 +38,10 @@ describe('Storefront Client & Utilities', () => {
   });
 
   describe('getApiBaseUrl', () => {
-    it('defaults to localhost:3001 if no environment variable is set', () => {
+    it('defaults to localhost:4000/api/v1 if no environment variable is set', () => {
       delete process.env['NEXT_PUBLIC_API_URL'];
       delete process.env['API_URL'];
-      expect(getApiBaseUrl()).toBe('http://localhost:3001');
+      expect(getApiBaseUrl()).toBe('http://localhost:4000/api/v1');
     });
 
     it('respects NEXT_PUBLIC_API_URL when set', () => {

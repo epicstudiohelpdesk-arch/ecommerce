@@ -153,3 +153,28 @@ export const auditLogs = pgTable(
     index('idx_audit_logs_created_at').on(table.createdAt),
   ],
 );
+
+// 8. Saved Customer Delivery Addresses Table
+export const customerAddresses = pgTable(
+  'customer_addresses',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    customerId: uuid('customer_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    recipientName: varchar('recipient_name', { length: 150 }).notNull(),
+    phone: varchar('phone', { length: 30 }).notNull(),
+    addressLine1: varchar('address_line1', { length: 255 }).notNull(),
+    addressLine2: varchar('address_line2', { length: 255 }),
+    locality: varchar('locality', { length: 150 }),
+    city: varchar('city', { length: 100 }).notNull(),
+    state: varchar('state', { length: 100 }).notNull(),
+    postalCode: varchar('postal_code', { length: 20 }).notNull(),
+    country: varchar('country', { length: 2 }).default('IN').notNull(),
+    deliveryInstructions: text('delivery_instructions'),
+    isDefault: boolean('is_default').default(false).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
+  },
+  (table) => [index('idx_customer_addresses_customer').on(table.customerId)],
+);

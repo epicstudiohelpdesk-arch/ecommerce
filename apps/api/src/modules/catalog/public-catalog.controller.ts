@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Param, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Query, Param, BadRequestException, Inject } from '@nestjs/common';
 import { PublicCatalogService } from './public-catalog.service';
 import { CategoriesService } from './categories.service';
 import { createSuccessResponse } from '@repo/api-contracts';
@@ -7,7 +7,9 @@ import { listPublicCatalogQuerySchema } from '@repo/validation';
 @Controller('catalog')
 export class PublicCatalogController {
   constructor(
+    @Inject(PublicCatalogService)
     private readonly publicCatalogService: PublicCatalogService,
+    @Inject(CategoriesService)
     private readonly categoriesService: CategoriesService,
   ) {}
 

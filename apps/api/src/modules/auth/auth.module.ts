@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { PasswordService } from './password.service';
@@ -11,6 +11,7 @@ import { RolesGuard } from '../../common/guards/roles.guard';
 import { SellerActiveGuard } from '../../common/guards/seller-active.guard';
 import { ResourceOwnerGuard } from '../../common/guards/resource-owner.guard';
 
+@Global()
 @Module({
   imports: [
     JwtModule.register({

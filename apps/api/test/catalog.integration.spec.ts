@@ -21,7 +21,7 @@ describe('G06: Product Catalogue, Listing Management & Inventory Integration', (
   let catalogService: PublicCatalogService;
   let moderationService: ProductModerationService;
 
-  const uniqueSuffix = Date.now();
+  const uniqueSuffix = `${Date.now()}-cat-${Math.random().toString(36).substring(2, 7)}`;
 
   let verifiedSellerUser: { id: string; email: string };
   let verifiedSellerProfileId: string;

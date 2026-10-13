@@ -19,7 +19,7 @@ describe('G08: Shopping Cart, Checkout & Order Creation Foundation Integration',
   let checkoutService: CheckoutService;
   let categoriesService: CategoriesService;
 
-  const uniqueSuffix = Date.now();
+  const uniqueSuffix = `${Date.now()}-cart-${Math.random().toString(36).substring(2, 7)}`;
 
   // Test Entities
   let customerUser: { id: string; email: string };
@@ -35,7 +35,7 @@ describe('G08: Shopping Cart, Checkout & Order Creation Foundation Integration',
   let variantBId: string;
 
   let testCouponId: string;
-  const couponCode = `FESTIVE10_${uniqueSuffix}`;
+  const couponCode = `FESTIVE10_${uniqueSuffix}`.toUpperCase();
 
   beforeAll(async () => {
     process.env['DATABASE_URL'] = 'postgresql://localhost:5432/marketplace_test';

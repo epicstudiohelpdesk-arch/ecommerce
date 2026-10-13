@@ -8,21 +8,34 @@ import { SellerOnboardingService } from './seller-onboarding.service';
 import { SellerReviewService } from './seller-review.service';
 import { SellerOnboardingController } from './seller-onboarding.controller';
 import { AdminSellerReviewController } from './admin-seller-review.controller';
+import { SellerOrdersController } from './seller-orders.controller';
+import { SellerOrdersService } from './seller-orders.service';
+import { SellerStudioController } from './seller-studio.controller';
+import { SellerStudioService } from './seller-studio.service';
 
 @Module({
   imports: [DatabaseModule, AuditModule, AuthModule],
-  controllers: [SellerOnboardingController, AdminSellerReviewController],
+  controllers: [
+    SellerOnboardingController,
+    AdminSellerReviewController,
+    SellerOrdersController,
+    SellerStudioController,
+  ],
   providers: [
     SellerDocumentsStorageService,
     SellerEligibilityService,
     SellerOnboardingService,
     SellerReviewService,
+    SellerOrdersService,
+    SellerStudioService,
   ],
   exports: [
     SellerEligibilityService,
     SellerOnboardingService,
     SellerReviewService,
     SellerDocumentsStorageService,
+    SellerOrdersService,
+    SellerStudioService,
   ],
 })
 export class SellersModule {}

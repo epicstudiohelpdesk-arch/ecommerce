@@ -480,6 +480,106 @@ paths:
           $ref: '#/components/responses/UnauthorizedError'
         '404':
           $ref: '#/components/responses/NotFoundError'
+    patch:
+      summary: Update Permitted Seller Shop Profile Details
+      operationId: updateSellerShop
+      tags: [Seller Management]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateShopProfileRequest'
+      responses:
+        '200':
+          description: Updated seller shop details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SellerShopResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /seller/dashboard/overview:
+    get:
+      summary: Retrieve Seller Studio Business Dashboard Overview
+      operationId: getSellerDashboardOverview
+      tags: [Seller Management]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [today, 7d, 30d]
+            default: 7d
+      responses:
+        '200':
+          description: Seller business dashboard overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SellerDashboardResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /seller/analytics/performance:
+    get:
+      summary: Retrieve Seller Sales & Product Performance Analytics
+      operationId: getSellerPerformanceAnalytics
+      tags: [Seller Management]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [7d, 30d, 90d]
+            default: 30d
+      responses:
+        '200':
+          description: Seller performance analytics report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SellerAnalyticsPerformanceResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /seller/notifications:
+    get:
+      summary: Retrieve Seller Actionable Notifications
+      operationId: getSellerNotifications
+      tags: [Seller Management]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Seller notifications list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SellerNotificationsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
 
   /seller/eligibility:
     get:
@@ -1105,9 +1205,9 @@ paths:
 
   /seller/orders:
     get:
-      summary: Retrieve Seller-Specific Sub-Orders
-      operationId: getSellerSubOrders
-      tags: [Orders]
+      summary: List Sub-Orders For Authenticated Seller
+      operationId: listSellerOrders
+      tags: [Orders, Seller Management]
       security:
         - BearerAuth: []
         - CookieAuth: []
@@ -1116,6 +1216,17 @@ paths:
           in: query
           schema:
             type: string
+            enum:
+              [
+                ALL,
+                CONFIRMED,
+                IN_PRODUCTION,
+                READY_FOR_PICKUP,
+                SHIPPED,
+                DELIVERED,
+                COMPLETED,
+                CANCELLED,
+              ]
         - name: page
           in: query
           schema:
@@ -1126,23 +1237,89 @@ paths:
           schema:
             type: integer
             default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
       responses:
         '200':
-          description: Seller fulfillment sub-orders
+          description: Paginated seller sub-orders
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedSellerSubOrdersResponse'
+                $ref: '#/components/schemas/SellerOrdersListResponse'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
           $ref: '#/components/responses/ForbiddenError'
 
+  /seller/orders/{subOrderId}:
+    get:
+      summary: Retrieve Seller Sub-Order Details
+      operationId: getSellerOrderDetail
+      tags: [Orders, Seller Management]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: subOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Seller sub-order details with line items and timeline
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SellerOrderDetailResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /seller/orders/{subOrderId}/status:
+    patch:
+      summary: Update Sub-Order Fulfillment State
+      operationId: updateSubOrderStatus
+      tags: [Orders, Seller Management]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: subOrderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateSubOrderStatusRequest'
+      responses:
+        '200':
+          description: Updated sub-order details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SellerOrderDetailResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
   /seller/orders/{subOrderId}/transition:
     post:
       summary: Advance Sub-Order State
       operationId: transitionSubOrder
-      tags: [Orders]
+      tags: [Orders, Seller Management]
       security:
         - BearerAuth: []
         - CookieAuth: []
@@ -1166,7 +1343,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseSuccessResponse'
+                $ref: '#/components/schemas/SellerOrderDetailResponse'
         '400':
           $ref: '#/components/responses/ValidationError'
         '401':
@@ -3376,3 +3553,305 @@ components:
                 type: object
         meta:
           $ref: '#/components/schemas/ApiResponseMeta'
+
+    UpdateShopProfileRequest:
+      type: object
+      properties:
+        shopName:
+          type: string
+        description:
+          type: string
+        craftStory:
+          type: string
+        logoUrl:
+          type: string
+        bannerUrl:
+          type: string
+        isVacationMode:
+          type: boolean
+        vacationMessage:
+          type: string
+
+    SellerDashboardResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            metrics:
+              type: object
+              properties:
+                ordersCount:
+                  type: integer
+                actionRequiredOrdersCount:
+                  type: integer
+                grossSalesMinor:
+                  type: integer
+                netPayableMinor:
+                  type: integer
+                publishedProductsCount:
+                  type: integer
+                pendingReviewProductsCount:
+                  type: integer
+                lowStockVariantsCount:
+                  type: integer
+                outOfStockVariantsCount:
+                  type: integer
+            financialPosition:
+              type: object
+              properties:
+                pendingEscrowMinor:
+                  type: integer
+                availablePayoutMinor:
+                  type: integer
+                heldDisputeMinor:
+                  type: integer
+                lifetimePayoutMinor:
+                  type: integer
+                currency:
+                  type: string
+            actionItems:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  type:
+                    type: string
+                  severity:
+                    type: string
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  actionLabel:
+                    type: string
+                  actionUrl:
+                    type: string
+            recentActivity:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  type:
+                    type: string
+                  title:
+                    type: string
+                  description:
+                    type: string
+                  timestamp:
+                    type: string
+            period:
+              type: string
+            timeZone:
+              type: string
+
+    SellerOrdersListResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  subOrderNumber:
+                    type: string
+                  parentOrderNumber:
+                    type: string
+                  status:
+                    type: string
+                  itemSubtotalMinor:
+                    type: integer
+                  shippingFeeMinor:
+                    type: integer
+                  commissionFeeMinor:
+                    type: integer
+                  netSellerPayableMinor:
+                    type: integer
+                  currency:
+                    type: string
+                  createdAt:
+                    type: string
+                  parentPaymentStatus:
+                    type: string
+                  itemCount:
+                    type: integer
+                  recipientCity:
+                    type: string
+                  recipientState:
+                    type: string
+                  recipientPostalCode:
+                    type: string
+            meta:
+              $ref: '#/components/schemas/ApiResponseMeta'
+
+    SellerOrderDetailResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            subOrderNumber:
+              type: string
+            parentOrderNumber:
+              type: string
+            status:
+              type: string
+            itemSubtotalMinor:
+              type: integer
+            shippingFeeMinor:
+              type: integer
+            commissionFeeMinor:
+              type: integer
+            netSellerPayableMinor:
+              type: integer
+            currency:
+              type: string
+            createdAt:
+              type: string
+            cancelledAt:
+              type: string
+              nullable: true
+            cancellationReason:
+              type: string
+              nullable: true
+            parentPaymentStatus:
+              type: string
+            parentOrderStatus:
+              type: string
+            customerNote:
+              type: string
+              nullable: true
+            shippingAddress:
+              type: object
+            items:
+              type: array
+              items:
+                type: object
+            timeline:
+              type: array
+              items:
+                type: object
+
+    UpdateSubOrderStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [IN_PRODUCTION, READY_FOR_PICKUP, CANCELLED]
+        cancellationReason:
+          type: string
+        notes:
+          type: string
+
+    SellerAnalyticsPerformanceResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            period:
+              type: string
+            summary:
+              type: object
+              properties:
+                totalOrders:
+                  type: integer
+                grossSalesMinor:
+                  type: integer
+                netPayableMinor:
+                  type: integer
+                commissionPaidMinor:
+                  type: integer
+                averageOrderValueMinor:
+                  type: integer
+                cancellationRateBps:
+                  type: integer
+                completedOrdersCount:
+                  type: integer
+                currency:
+                  type: string
+            salesTrend:
+              type: array
+              items:
+                type: object
+                properties:
+                  date:
+                    type: string
+                  ordersCount:
+                    type: integer
+                  grossSalesMinor:
+                    type: integer
+                  netPayableMinor:
+                    type: integer
+            topProducts:
+              type: array
+              items:
+                type: object
+                properties:
+                  variantId:
+                    type: string
+                  title:
+                    type: string
+                  sku:
+                    type: string
+                  unitsSold:
+                    type: integer
+                  totalRevenueMinor:
+                    type: integer
+
+    SellerNotificationsResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              type:
+                type: string
+              title:
+                type: string
+              message:
+                type: string
+              createdAt:
+                type: string
+              isRead:
+                type: boolean
+              actionUrl:
+                type: string

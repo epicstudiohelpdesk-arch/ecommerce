@@ -9,10 +9,14 @@ export const SellerHeader: React.FC = () => {
   const pathname = usePathname();
 
   const navLinks = [
-    { href: '/', label: 'Studio Overview' },
-    { href: '/products', label: 'Catalogue & Stock' },
-    { href: '/products/new', label: '+ New Listing' },
-    { href: '/onboarding', label: 'KYC & Onboarding' },
+    { href: '/', label: 'Overview' },
+    { href: '/orders', label: 'Orders' },
+    { href: '/products', label: 'Catalogue' },
+    { href: '/inventory', label: 'Inventory' },
+    { href: '/performance', label: 'Performance' },
+    { href: '/finances', label: 'Finances' },
+    { href: '/shop', label: 'Shop Profile' },
+    { href: '/notifications', label: 'Alerts' },
   ];
 
   return (

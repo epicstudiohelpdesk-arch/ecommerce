@@ -293,6 +293,34 @@ Every gate is an auditable milestone governed by the following rules:
 
 ---
 
+### Gate G10: Seller Studio, Business Management & Performance Dashboard
+
+- **Status:** **PASSED** (Ready for human review; stop condition enforced before G11).
+- **Focus:** Unified Seller Studio for independent artisans and small businesses in `apps/seller-portal` and `apps/api`. Real-time business overview dashboard, multi-tenant sub-order fulfillment management with privacy-redacted customer addresses (City, State, PIN only), special artisan customisation instructions display, server-authoritative state transitions (`CONFIRMED` $\to$ `IN_PRODUCTION` $\to$ `READY_FOR_PICKUP` or `CANCELLED` with mandatory reason), artisan stock reserves & quick batch adjustment controls, public shop profile & craft story management with vacation mode controls, product & sales performance analytics (daily sales trend, top performing handcrafted items, AOV, cancellation rate), read-only consumer of G09 double-entry financial ledger (available payout, delivery escrow, lifetime earnings, statement journal), and live studio alert stream.
+- **Dependencies:** G00 through G09 (including G07A) passed and approved.
+- **Deliverables:**
+  - `packages/validation/src/seller.ts` (Zod validation schemas for order queries, status transitions, analytics, and shop updates)
+  - `packages/api-contracts/src/seller.ts` (DTOs for dashboard overview, action items, orders, analytics, shop profile, and alerts)
+  - `apps/api/src/modules/sellers/seller-orders.service.ts` & `seller-orders.controller.ts` (tenant-isolated order fulfillment workflow)
+  - `apps/api/src/modules/sellers/seller-studio.service.ts` & `seller-studio.controller.ts` (dashboard metrics, analytics, shop settings, notifications)
+  - `apps/api/test/seller-studio.integration.spec.ts` (13 automated integration tests passing)
+  - `apps/seller-portal/src/lib/api.ts` (typed API client with preview fallbacks)
+  - `apps/seller-portal/src/components/layout/seller-header.tsx` (Studio navigation header)
+  - `apps/seller-portal/src/app/page.tsx` (Studio Overview Dashboard)
+  - `apps/seller-portal/src/app/orders/page.tsx` (Sub-Orders List)
+  - `apps/seller-portal/src/app/orders/[subOrderId]/page.tsx` (Order Details, Customisations & Fulfillment Actions)
+  - `apps/seller-portal/src/app/inventory/page.tsx` (Stock Reserves & Batch Adjustments)
+  - `apps/seller-portal/src/app/shop/page.tsx` (Shop Profile, Craft Story & Vacation Mode)
+  - `apps/seller-portal/src/app/performance/page.tsx` (Sales & Craft Performance Analytics)
+  - `apps/seller-portal/src/app/finances/page.tsx` (Read-Only Financial Position & Ledger Statement)
+  - `apps/seller-portal/src/app/notifications/page.tsx` (Studio Alerts & Notifications)
+  - `docs/api/OPENAPI.yaml` (66 paths, 302 refs, 100% valid)
+  - `docs/implementation/G10_REPORT.md`
+- **Exit Criteria:** 100% passing automated test suite covering multi-tenant seller order isolation, IDOR prevention, status transitions, cancellation validation, real-time metrics calculation, performance analytics aggregation, shop settings update, and notification feed; zero simulated financial data; zero premature courier booking or label generation (strictly reserved for G11); zero premature payout disbursements (strictly reserved for G11/G12); clean production Next.js builds.
+- **Verification Result:** Fully verified on 2026-10-13 via `./scripts/verify-repo.sh` (127/127 tests in `apps/api`, 193 tests monorepo-wide across 8 suites, 9/9 builds successful, 0 lint/type errors, 100% Prettier formatting compliant, OpenAPI 3.1 valid).
+
+---
+
 ### Gate G11: Courier Logistics, Shipping & Tracking Integration
 
 - **Focus:** Courier provider adapter, shipping label generation per artisan sub-order, tracking milestone webhook ingestion, automated order status synchronization.

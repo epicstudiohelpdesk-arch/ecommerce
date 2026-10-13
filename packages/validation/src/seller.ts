@@ -166,3 +166,93 @@ export const listSellerApplicationsQuerySchema = paginationQuerySchema.extend({
 });
 
 export type ListSellerApplicationsQuery = z.infer<typeof listSellerApplicationsQuerySchema>;
+
+// --- G10: Seller Studio Schemas ---
+
+export const updateShopProfileSchema = z.object({
+  shopName: z
+    .string()
+    .trim()
+    .min(2, { message: 'Shop name must be at least 2 characters' })
+    .max(100)
+    .optional(),
+  description: z.string().trim().max(2000).optional(),
+  craftStory: z.string().trim().max(5000).optional(),
+  logoUrl: z.string().trim().max(500).optional(),
+  bannerUrl: z.string().trim().max(500).optional(),
+  isVacationMode: z.boolean().optional(),
+  vacationMessage: z.string().trim().max(500).optional(),
+});
+
+export type UpdateShopProfileInput = z.infer<typeof updateShopProfileSchema>;
+
+export const SELLER_SUB_ORDER_STATUSES = [
+  'CONFIRMED',
+  'IN_PRODUCTION',
+  'READY_FOR_PICKUP',
+  'SHIPPED',
+  'DELIVERED',
+  'COMPLETED',
+  'CANCELLED',
+] as const;
+
+export const sellerSubOrderStatusSchema = z.enum(SELLER_SUB_ORDER_STATUSES);
+export type SellerSubOrderStatus = z.infer<typeof sellerSubOrderStatusSchema>;
+
+export const listSellerOrdersQuerySchema = paginationQuerySchema.extend({
+  status: z.enum(['ALL', ...SELLER_SUB_ORDER_STATUSES]).optional(),
+  search: z.string().trim().max(100).optional(),
+});
+
+export type ListSellerOrdersQuery = z.infer<typeof listSellerOrdersQuerySchema>;
+
+export const updateSubOrderStatusSchema = z
+  .object({
+    status: z.enum(['IN_PRODUCTION', 'READY_FOR_PICKUP', 'CANCELLED']).optional(),
+    targetStatus: z.enum(['IN_PRODUCTION', 'READY_FOR_PICKUP', 'CANCELLED']).optional(),
+    cancellationReason: z.string().trim().max(500).optional(),
+    notes: z.string().trim().max(500).optional(),
+  })
+  .transform((data) => {
+    const finalStatus = data.status || data.targetStatus;
+    const finalReason =
+      data.cancellationReason || (finalStatus === 'CANCELLED' ? data.notes : undefined);
+    return {
+      status: finalStatus as 'IN_PRODUCTION' | 'READY_FOR_PICKUP' | 'CANCELLED',
+      cancellationReason: finalReason,
+      notes: data.notes,
+    };
+  })
+  .refine((data) => !!data.status, {
+    message: 'status or targetStatus is required',
+    path: ['status'],
+  })
+  .refine(
+    (data) => {
+      if (
+        data.status === 'CANCELLED' &&
+        (!data.cancellationReason || data.cancellationReason.length < 3)
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'Cancellation reason of at least 3 characters is required when cancelling an order',
+      path: ['cancellationReason'],
+    },
+  );
+
+export type UpdateSubOrderStatusInput = z.infer<typeof updateSubOrderStatusSchema>;
+
+export const sellerDashboardQuerySchema = z.object({
+  period: z.enum(['today', '7d', '30d']).default('7d'),
+});
+
+export type SellerDashboardQuery = z.infer<typeof sellerDashboardQuerySchema>;
+
+export const sellerAnalyticsQuerySchema = z.object({
+  period: z.enum(['7d', '30d', '90d']).default('30d'),
+});
+
+export type SellerAnalyticsQuery = z.infer<typeof sellerAnalyticsQuerySchema>;

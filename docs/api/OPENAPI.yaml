@@ -2195,6 +2195,369 @@ paths:
         '409':
           $ref: '#/components/responses/ConflictError'
 
+  /admin/dashboard:
+    get:
+      summary: Authoritative Dashboard Metrics
+      description: Returns live database aggregates across sellers, catalog, orders, fulfilment, and finances with last 10 audit logs.
+      operationId: getAdminDashboardMetrics
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      responses:
+        '200':
+          description: Dashboard metrics retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminDashboardMetricsResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /admin/orders:
+    get:
+      summary: List Marketplace Orders
+      description: Search and filter marketplace transactions with bounded pagination.
+      operationId: listAdminOrders
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: orderStatus
+          in: query
+          schema:
+            type: string
+            enum: [PLACED, PROCESSING, PARTIALLY_SHIPPED, COMPLETED, CANCELLED]
+        - name: paymentStatus
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, AUTHORIZED, PAID, FAILED, REFUNDED]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Paginated orders list retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminOrdersListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /admin/orders/{id}:
+    get:
+      summary: Get Order Detail
+      description: Returns multi-vendor order breakdown with sub-orders, snapshot items, shipments, and gateway payment telemetry.
+      operationId: getAdminOrderDetail
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminOrderDetailResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /admin/shipments:
+    get:
+      summary: List Shipments
+      description: Query multi-carrier consignments across sellers with exception filtering.
+      operationId: listAdminShipments
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: carrier
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: hasException
+          in: query
+          schema:
+            type: boolean
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Shipments list retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminShipmentsListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /admin/shipments/{id}:
+    get:
+      summary: Get Shipment Detail
+      description: Returns consignment dimensions, weight, snapshots, and chronological milestones history timeline.
+      operationId: getAdminShipmentDetail
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Shipment detail retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminShipmentDetailResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /admin/staff:
+    get:
+      summary: List Operational Staff Accounts
+      description: Query internal privileged staff members with role filtering.
+      operationId: listAdminStaff
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: role
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [ACTIVE, SUSPENDED, INACTIVE]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Staff list retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminStaffListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+    post:
+      summary: Provision Staff Account
+      description: Creates a new internal operational staff account with role privileges (strictly guarded by SuperAdmin).
+      operationId: createAdminStaff
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminCreateStaffRequest'
+      responses:
+        '201':
+          description: Staff account provisioned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminStaffDetailResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+  /admin/staff/{userId}/status:
+    patch:
+      summary: Update Staff Account Status
+      description: Suspends or reactivates an operational staff account with mandatory reason note.
+      operationId: updateAdminStaffStatus
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminUpdateStaffStatusRequest'
+      responses:
+        '200':
+          description: Staff status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminStaffDetailResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /admin/audit:
+    get:
+      summary: Query Platform Audit Log Records
+      description: Search immutable audit trail with actor, action, and resource filters.
+      operationId: listAdminAuditLogs
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: actorRole
+          in: query
+          schema:
+            type: string
+        - name: action
+          in: query
+          schema:
+            type: string
+        - name: resourceType
+          in: query
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 25
+      responses:
+        '200':
+          description: Audit log list retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAuditLogsListResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /admin/audit/{id}:
+    get:
+      summary: Get Audit Record Detail
+      description: Retrieves complete immutable audit record including before/after state and event metadata.
+      operationId: getAdminAuditLogDetail
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Audit log detail retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminAuditLogDetailResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
 components:
   securitySchemes:
     BearerAuth:
@@ -4347,3 +4710,413 @@ components:
                 type: boolean
               actionUrl:
                 type: string
+
+    AdminDashboardMetricsResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            sellers:
+              type: object
+              properties:
+                total:
+                  type: integer
+                pendingVerification:
+                  type: integer
+                approved:
+                  type: integer
+                suspended:
+                  type: integer
+            products:
+              type: object
+              properties:
+                total:
+                  type: integer
+                pendingModeration:
+                  type: integer
+                published:
+                  type: integer
+                rejected:
+                  type: integer
+            orders:
+              type: object
+              properties:
+                total:
+                  type: integer
+                pending:
+                  type: integer
+                processing:
+                  type: integer
+                completed:
+                  type: integer
+                cancelled:
+                  type: integer
+                grossMerchandiseValueMinor:
+                  type: integer
+            fulfilment:
+              type: object
+              properties:
+                totalShipments:
+                  type: integer
+                pendingPickup:
+                  type: integer
+                inTransit:
+                  type: integer
+                delivered:
+                  type: integer
+                deliveryExceptions:
+                  type: integer
+            finances:
+              type: object
+              properties:
+                capturedPaymentsMinor:
+                  type: integer
+                platformCommissionsMinor:
+                  type: integer
+                sellerPayablesMinor:
+                  type: integer
+                reconciliationDiscrepancies:
+                  type: integer
+            recentAuditLogs:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  actorRole:
+                    type: string
+                  action:
+                    type: string
+                  resourceType:
+                    type: string
+                  resourceId:
+                    type: string
+                    nullable: true
+                  createdAt:
+                    type: string
+
+    AdminOrdersListResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  orderNumber:
+                    type: string
+                  customerName:
+                    type: string
+                  customerEmail:
+                    type: string
+                  orderStatus:
+                    type: string
+                  paymentStatus:
+                    type: string
+                  totalAmountMinor:
+                    type: integer
+                  subOrderCount:
+                    type: integer
+                  itemCount:
+                    type: integer
+                  createdAt:
+                    type: string
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+            totalPages:
+              type: integer
+
+    AdminOrderDetailResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            orderNumber:
+              type: string
+            customerName:
+              type: string
+            customerEmail:
+              type: string
+            orderStatus:
+              type: string
+            paymentStatus:
+              type: string
+            totalAmountMinor:
+              type: integer
+            shippingAddress:
+              type: object
+            subOrders:
+              type: array
+              items:
+                type: object
+            payment:
+              type: object
+              nullable: true
+
+    AdminShipmentsListResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  waybillNumber:
+                    type: string
+                    nullable: true
+                  trackingNumber:
+                    type: string
+                  carrier:
+                    type: string
+                  status:
+                    type: string
+                  subOrderNumber:
+                    type: string
+                  sellerName:
+                    type: string
+                  shopName:
+                    type: string
+                  destinationCity:
+                    type: string
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+            totalPages:
+              type: integer
+
+    AdminShipmentDetailResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            waybillNumber:
+              type: string
+              nullable: true
+            trackingNumber:
+              type: string
+            carrier:
+              type: string
+            status:
+              type: string
+            packageWeightGrams:
+              type: integer
+            dimensions:
+              type: object
+            trackingEvents:
+              type: array
+              items:
+                type: object
+
+    AdminStaffListResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  email:
+                    type: string
+                  firstName:
+                    type: string
+                  lastName:
+                    type: string
+                  roles:
+                    type: array
+                    items:
+                      type: string
+                  status:
+                    type: string
+                  mfaEnabled:
+                    type: boolean
+                  createdAt:
+                    type: string
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+            totalPages:
+              type: integer
+
+    AdminCreateStaffRequest:
+      type: object
+      required: [email, password, firstName, lastName, role]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        firstName:
+          type: string
+        lastName:
+          type: string
+        role:
+          type: string
+          enum:
+            [
+              MARKETPLACE_MANAGER,
+              FINANCE_CONTROLLER,
+              TRUST_SAFETY,
+              CUSTOMER_SUPPORT,
+              READ_ONLY_ANALYST,
+              SUPER_ADMIN,
+            ]
+
+    AdminUpdateStaffStatusRequest:
+      type: object
+      required: [status, reason]
+      properties:
+        status:
+          type: string
+          enum: [ACTIVE, SUSPENDED, DEACTIVATED]
+        reason:
+          type: string
+          minLength: 5
+
+    AdminStaffDetailResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            email:
+              type: string
+            firstName:
+              type: string
+            lastName:
+              type: string
+            roles:
+              type: array
+              items:
+                type: string
+            status:
+              type: string
+
+    AdminAuditLogsListResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  actorRole:
+                    type: string
+                  action:
+                    type: string
+                  resourceType:
+                    type: string
+                  resourceId:
+                    type: string
+                    nullable: true
+                  createdAt:
+                    type: string
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+            totalPages:
+              type: integer
+
+    AdminAuditLogDetailResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+            actorId:
+              type: string
+              nullable: true
+            actorRole:
+              type: string
+            action:
+              type: string
+            resourceType:
+              type: string
+            resourceId:
+              type: string
+              nullable: true
+            beforeState:
+              type: object
+              nullable: true
+            afterState:
+              type: object
+              nullable: true
+            metadata:
+              type: object
+              nullable: true
+            createdAt:
+              type: string

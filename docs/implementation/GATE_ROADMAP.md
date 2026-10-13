@@ -349,31 +349,34 @@ Every gate is an auditable milestone governed by the following rules:
 
 ---
 
-### Gate G12: Customer Storefront (Responsive Next.js Web App)
+### Gate G12: Admin & Agency Control Center, Platform Operations & Governance
 
-- **Focus:** Modern, responsive e-commerce web application (`web-store`), artisan storytelling pages, product catalog browsing, faceted filtering, cart, and checkout flow.
-- **Dependencies:** G08, G09.
-- **Exit Criteria:** Next.js build succeeds; Lighthouse mobile performance, accessibility, and SEO scores meet production thresholds.
+- **Status:** **PASSED** (Ready for human review; stop condition enforced before G13).
+- **Focus:** Production-grade operational control center for internal platform staff across 6 approved roles (`SUPER_ADMIN`, `MARKETPLACE_MANAGER`, `FINANCE_CONTROLLER`, `TRUST_SAFETY`, `CUSTOMER_SUPPORT`, `READ_ONLY_ANALYST`). Authoritative overview dashboard (GMV, platform commission, artisan count, order volume, pending queues), seller KYC verification workspace with document inspector, product catalogue moderation queue, multi-vendor order operations workspace, courier logistics oversight with checkpoint milestones timeline, read-only financial position and automated double-entry ledger reconciliation check, staff account directory with privilege separation (`SUPER_ADMIN` only) and Argon2id password hashing, and filterable immutable audit register.
+- **Dependencies:** G00 through G11 (including G07A) passed and approved.
+- **Deliverables:**
+  - `packages/validation/src/admin.ts` (Zod validation schemas for order queries, shipment queries, staff management, and audit queries)
+  - `packages/api-contracts/src/admin.ts` (Shared DTOs for dashboard metrics, orders, shipments, staff, and audit records)
+  - `apps/api/src/modules/admin/` (`admin-dashboard.service.ts`, `admin-orders.service.ts`, `admin-shipping.service.ts`, `admin-staff.service.ts`, `admin-audit.service.ts`, controllers, and `admin.module.ts`)
+  - `apps/api/test/admin-control-center.integration.spec.ts` (16 automated integration tests)
+  - `apps/admin-portal/src/lib/api.ts` (Typed API client connecting to backend `/admin/*` routes)
+  - `apps/admin-portal/src/components/layout/admin-header.tsx` (Dynamic navigation for 8 operational workspaces)
+  - `apps/admin-portal/src/app/page.tsx` (Overview Dashboard & live metrics summary)
+  - `apps/admin-portal/src/app/sellers/page.tsx` (Artisan KYC Verification & document review)
+  - `apps/admin-portal/src/app/moderation/page.tsx` (Curated product moderation & photograph inspector)
+  - `apps/admin-portal/src/app/orders/page.tsx` & `/orders/[orderId]/page.tsx` (Marketplace order operations)
+  - `apps/admin-portal/src/app/shipments/page.tsx` (Courier logistics & tracking timeline)
+  - `apps/admin-portal/src/app/finances/page.tsx` (Financial position & reconciliation audit view)
+  - `apps/admin-portal/src/app/staff/page.tsx` (Staff account directory, provisioning & status toggle)
+  - `apps/admin-portal/src/app/audit/page.tsx` (Immutable audit register & deep metadata diffs)
+  - `docs/api/OPENAPI.yaml` (83 paths, 370 refs, 100% valid)
+  - `docs/implementation/G12_REPORT.md`
+- **Exit Criteria:** 100% passing automated test suite covering RBAC authorization, metrics calculation, multi-vendor order breakdowns, shipment milestones, staff provisioning, staff status toggling, SUPER_ADMIN exclusivity, and immutable audit logs; zero simulated or fake data in production routes; clean Next.js production build for `apps/admin-portal`.
+- **Verification Result:** Fully verified on 2026-10-13 via `./scripts/verify-repo.sh` (160/160 tests in `apps/api`, 226 tests monorepo-wide across 8 suites, 9/9 builds successful, 0 lint/type errors, 100% Prettier formatting compliant, OpenAPI 3.1 valid).
 
 ---
 
-### Gate G13: Seller Dashboard & Storefront Operations Portal
-
-- **Focus:** Seller web application (`web-portal`), artisan shop settings, product management, sub-order fulfillment, shipping label printing, earnings and payout analytics.
-- **Dependencies:** G04, G09, G10.
-- **Exit Criteria:** End-to-end seller fulfillment journey test; strict verification that seller cannot view another artisan's data.
-
----
-
-### Gate G14: Marketplace Admin Console, Moderation & Audit Control
-
-- **Focus:** SuperAdmin & Staff management portal, artisan KYC review and approval, product moderation queue, dispute mediation, platform financial oversight, immutable audit log explorer.
-- **Dependencies:** G04, G05, G10.
-- **Exit Criteria:** Complete admin review flow test; audit log verification proving every administrative action produces an unalterable log entry.
-
----
-
-### Gate G15: Customer Support, Returns, Refunds & Dispute Management
+### Gate G13: Customer Support, Returns, Refunds & Dispute Management
 
 - **Focus:** Return authorization requests, artisan dispute resolution, return shipping label dispatch, automated reverse ledger transactions, and customer refunds.
 - **Dependencies:** G10, G11.

@@ -1,492 +1,390 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Button, Badge, Card } from '@repo/ui';
+import {
+  getAdminModerationQueue,
+  getAdminProductForModeration,
+  moderateProduct,
+  type AdminModerationProductItem,
+} from '../../lib/api';
 
-interface ModerationItem {
-  id: string;
-  sellerId: string;
-  sellerName: string;
-  shopName: string;
-  title: string;
-  slug: string;
-  category: {
-    id: string;
-    name: string;
-  };
-  productType: string;
-  basePriceMinor: number;
-  totalStock: number;
-  submittedAt: string;
-  moderationStatus: 'PENDING_REVIEW' | 'PUBLISHED' | 'REJECTED' | 'SUSPENDED';
-  rejectionReason?: string | null;
-  materials: string[];
-  techniques: string[];
-  description: string;
-  isFragile: boolean;
-  dimensions: {
-    lengthMm: number;
-    widthMm: number;
-    heightMm: number;
-    weightGrams: number;
-  };
-  sku: string;
-  mediaUrls: string[];
+interface ProductModerationDetail {
+  id?: string;
+  title?: string;
+  description?: string;
+  [key: string]: unknown;
 }
 
-const MOCK_MODERATION_ITEMS: ModerationItem[] = [
-  {
-    id: 'prod-mod-101',
-    sellerId: 'sel-1001',
-    sellerName: 'Meera Sharma',
-    shopName: 'Terracotta Whispers',
-    title: 'Glazed Stoneware Serving Bowl - Cobalt Blue',
-    slug: 'glazed-stoneware-serving-bowl-cobalt-blue',
-    category: {
-      id: 'cat-1',
-      name: 'Pottery & Ceramics',
-    },
-    productType: 'ONE_OF_A_KIND',
-    basePriceMinor: 175000,
-    totalStock: 8,
-    submittedAt: '2026-10-12T08:30:00.000Z',
-    moderationStatus: 'PENDING_REVIEW',
-    materials: ['High-fire Stoneware Clay', 'Cobalt Oxide Mineral Glaze'],
-    techniques: ['Potter Wheel Throwing', '1250°C Reduction Firing'],
-    description:
-      'Hand-thrown cobalt blue serving bowl. Fired at over 1250°C for exceptional durability. Each piece bears individual glaze drip characteristics that cannot be reproduced in factory casting.',
-    isFragile: true,
-    dimensions: {
-      lengthMm: 240,
-      widthMm: 240,
-      heightMm: 95,
-      weightGrams: 1250,
-    },
-    sku: 'STONE-BOWL-BL-01',
-    mediaUrls: ['/media/stoneware-bowl-1.jpg', '/media/stoneware-bowl-bottom.jpg'],
-  },
-  {
-    id: 'prod-mod-102',
-    sellerId: 'sel-1002',
-    sellerName: 'Karan Verma',
-    shopName: 'Teak & Chisel',
-    title: 'Hand-carved Teakwood Decorative Elephant Figurine',
-    slug: 'hand-carved-teakwood-elephant',
-    category: {
-      id: 'cat-2',
-      name: 'Woodcrafts & Carvings',
-    },
-    productType: 'READY_TO_SHIP',
-    basePriceMinor: 240000,
-    totalStock: 12,
-    submittedAt: '2026-10-12T09:15:00.000Z',
-    moderationStatus: 'PENDING_REVIEW',
-    materials: ['Reclaimed CP Teak Wood', 'Natural Beeswax Polish'],
-    techniques: ['Relief Chisel Carving', 'Hand Buffing'],
-    description:
-      'Traditional heritage elephant sculpture handcrafted from single seasoned block of reclaimed teak. Finished exclusively with organic beeswax, preserving authentic wood grain aromatics.',
-    isFragile: false,
-    dimensions: {
-      lengthMm: 180,
-      widthMm: 90,
-      heightMm: 150,
-      weightGrams: 850,
-    },
-    sku: 'TEAK-ELEPH-09',
-    mediaUrls: ['/media/teak-elephant.jpg'],
-  },
-  {
-    id: 'prod-mod-103',
-    sellerId: 'sel-1003',
-    sellerName: 'Anjali Devi',
-    shopName: 'Varanasi Silks & Loom',
-    title: 'Handloom Katan Silk Stole with Zari Border',
-    slug: 'handloom-katan-silk-stole',
-    category: {
-      id: 'cat-4',
-      name: 'Textiles & Handloom',
-    },
-    productType: 'READY_TO_SHIP',
-    basePriceMinor: 380000,
-    totalStock: 5,
-    submittedAt: '2026-10-11T14:20:00.000Z',
-    moderationStatus: 'PUBLISHED',
-    materials: ['Pure Mulberry Silk', 'Silver-dipped Zari Thread'],
-    techniques: ['Pit Loom Weaving', 'Kadwa Brocade'],
-    description:
-      'Authentic Banarasi pit loom woven stole crafted by master weavers. Verified Silk Mark compliant.',
-    isFragile: false,
-    dimensions: {
-      lengthMm: 2000,
-      widthMm: 600,
-      heightMm: 5,
-      weightGrams: 220,
-    },
-    sku: 'SILK-STOLE-004',
-    mediaUrls: ['/media/silk-stole.jpg'],
-  },
-];
-
 export default function AdminProductModerationPage() {
-  const [items, setItems] = useState<ModerationItem[]>(MOCK_MODERATION_ITEMS);
-  const [statusFilter, setStatusFilter] = useState<string>('PENDING_REVIEW');
-  const [selectedItem, setSelectedItem] = useState<ModerationItem | null>(null);
+  const [items, setItems] = useState<AdminModerationProductItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [selectedItem, setSelectedItem] = useState<AdminModerationProductItem | null>(null);
+  const [selectedDetail, setSelectedDetail] = useState<ProductModerationDetail | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+
   const [reasonCode, setReasonCode] = useState('AUTHENTIC_HANDCRAFT');
   const [moderatorNotes, setModeratorNotes] = useState('');
+  const [submitting, setSubmitting] = useState(false);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
-  const filteredItems = items.filter((item) => {
-    if (statusFilter === 'ALL') return true;
-    return item.moderationStatus === statusFilter;
-  });
+  const loadQueue = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await getAdminModerationQueue({ limit: 50 });
+      setItems(res.items);
+    } catch (err: unknown) {
+      setError((err as Error).message || 'Failed to load moderation queue');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const handleDecision = (decision: 'APPROVED' | 'REJECTED' | 'SUSPENDED') => {
+  useEffect(() => {
+    loadQueue();
+  }, [loadQueue]);
+
+  const handleSelectItem = async (item: AdminModerationProductItem) => {
+    setSelectedItem(item);
+    setModeratorNotes('');
+    setActionSuccess(null);
+    try {
+      setDetailLoading(true);
+      const detail = await getAdminProductForModeration(item.id);
+      setSelectedDetail(detail);
+    } catch {
+      setSelectedDetail(null);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const handleDecision = async (action: 'APPROVE' | 'REJECT' | 'SUSPEND') => {
     if (!selectedItem) return;
 
-    if ((decision === 'REJECTED' || decision === 'SUSPENDED') && moderatorNotes.trim().length < 5) {
-      alert(
-        'A detailed note of at least 5 characters is mandatory when rejecting or suspending a listing.',
-      );
+    if (action === 'REJECT' && (!moderatorNotes || moderatorNotes.length < 5)) {
+      alert('A detailed note of at least 5 characters is required when rejecting a listing.');
       return;
     }
 
-    const newStatus =
-      decision === 'APPROVED' ? 'PUBLISHED' : decision === 'REJECTED' ? 'REJECTED' : 'SUSPENDED';
+    try {
+      setSubmitting(true);
+      setActionSuccess(null);
 
-    setItems((prev) =>
-      prev.map((i) =>
-        i.id === selectedItem.id
-          ? {
-              ...i,
-              moderationStatus: newStatus,
-              rejectionReason: decision === 'APPROVED' ? null : moderatorNotes,
-            }
-          : i,
-      ),
-    );
+      await moderateProduct(selectedItem.id, action, moderatorNotes || undefined, reasonCode);
 
-    setActionSuccess(
-      `Listing "${selectedItem.title}" has been successfully marked as ${newStatus}. Immutable audit log created.`,
-    );
-    setSelectedItem(null);
-    setModeratorNotes('');
-  };
+      setActionSuccess(
+        action === 'APPROVE'
+          ? `Listing "${selectedItem.title}" has been APPROVED and published to customer storefront.`
+          : action === 'REJECT'
+            ? `Listing "${selectedItem.title}" has been REJECTED. Notes dispatched to artisan.`
+            : `Listing "${selectedItem.title}" has been SUSPENDED.`,
+      );
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'PUBLISHED':
-        return <Badge variant="success">Published</Badge>;
-      case 'PENDING_REVIEW':
-        return <Badge variant="warning">Pending Review</Badge>;
-      case 'REJECTED':
-        return <Badge variant="destructive">Rejected</Badge>;
-      case 'SUSPENDED':
-        return <Badge variant="destructive">Suspended</Badge>;
-      default:
-        return <Badge variant="default">{status}</Badge>;
+      setModeratorNotes('');
+      await loadQueue();
+      setSelectedItem(null);
+      setSelectedDetail(null);
+    } catch (err: unknown) {
+      alert(`Moderation decision failed: ${(err as Error).message}`);
+    } finally {
+      setSubmitting(false);
     }
   };
 
+  const formatPrice = (minor: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0,
+    }).format(minor / 100);
+  };
+
   return (
-    <main className="max-w-6xl mx-auto py-10 px-4">
+    <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div>
-          <div className="flex items-center gap-2">
-            <Link href="/" className="text-sm text-stone-400 hover:text-white">
-              Platform Governance
-            </Link>
-            <span className="text-stone-500">/</span>
-            <span className="text-sm font-medium text-amber-500">Product Moderation</span>
+      <div>
+        <Link
+          href="/"
+          className="text-xs font-semibold text-amber-500 hover:text-amber-400 mb-2 inline-block"
+        >
+          &larr; Back to Platform Overview
+        </Link>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-white">
+              Product Quality & Authenticity Moderation
+            </h1>
+            <p className="text-sm text-stone-400 mt-1">
+              Review artisan craft techniques, materials disclosure, photograph standards, and
+              reject factory-made or prohibited items.
+            </p>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-white mt-1">
-            Product Listing Compliance Queue
-          </h1>
-          <p className="text-stone-400 mt-1">
-            Enforce handcrafted authenticity standards, prevent mass-produced factory resale, and
-            audit seller listings.
-          </p>
+          <Button variant="secondary" size="sm" onClick={() => loadQueue()} disabled={loading}>
+            {loading ? 'Refreshing...' : '↻ Refresh Queue'}
+          </Button>
         </div>
       </div>
 
       {actionSuccess && (
-        <div className="mb-6 p-4 bg-emerald-950/70 border border-emerald-500/50 text-emerald-200 rounded-lg flex items-center justify-between">
-          <p className="text-sm font-medium">{actionSuccess}</p>
-          <button
-            onClick={() => setActionSuccess(null)}
-            className="text-emerald-400 hover:text-emerald-100 text-sm font-semibold ml-4"
-          >
-            Dismiss
-          </button>
-        </div>
+        <Card className="bg-emerald-950/40 border-emerald-800 text-emerald-200 p-4">
+          <div className="flex items-center gap-2 font-semibold">
+            <span>✓</span> Moderation Confirmed
+          </div>
+          <p className="text-sm mt-1">{actionSuccess}</p>
+        </Card>
       )}
 
-      {/* Filter Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-stone-800 pb-3">
-        {['PENDING_REVIEW', 'ALL', 'PUBLISHED', 'REJECTED', 'SUSPENDED'].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setStatusFilter(tab)}
-            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
-              statusFilter === tab
-                ? 'bg-amber-600 text-white'
-                : 'bg-stone-900 text-stone-400 hover:bg-stone-800 hover:text-stone-200'
-            }`}
-          >
-            {tab.replace('_', ' ')}
-          </button>
-        ))}
-      </div>
+      {error && (
+        <Card className="bg-rose-950/40 border-rose-800 text-rose-200 p-4">
+          <div className="flex items-center gap-2 font-semibold">
+            <span>⚠️</span> Data Query Error
+          </div>
+          <p className="text-sm mt-1 text-rose-300">{error}</p>
+        </Card>
+      )}
 
-      {/* Table of Listings */}
-      <Card className="p-0 overflow-hidden bg-stone-900 border-stone-800 text-white">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-stone-300">
-            <thead className="bg-stone-950 border-b border-stone-800 text-xs font-semibold uppercase text-stone-400">
-              <tr>
-                <th className="px-6 py-4">Listing & Artisan</th>
-                <th className="px-6 py-4">Craft Type</th>
-                <th className="px-6 py-4">Price</th>
-                <th className="px-6 py-4">Stock</th>
-                <th className="px-6 py-4">Submitted</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-stone-800">
-              {filteredItems.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-stone-500">
-                    No product listings found in this moderation queue filter.
-                  </td>
-                </tr>
+      {/* Main Split Queue Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Left: Moderation Queue List */}
+        <div className="lg:col-span-7 space-y-4">
+          <Card className="bg-stone-900 border-stone-800 overflow-hidden">
+            <div className="p-4 border-b border-stone-800 flex items-center justify-between">
+              <h2 className="text-sm font-bold text-white">
+                Pending Moderation Queue ({items.length})
+              </h2>
+              <span className="text-xs text-stone-400">Items awaiting quality clearance</span>
+            </div>
+
+            {loading ? (
+              <div className="p-12 text-center text-stone-400 text-xs">
+                Querying pending craft listings...
+              </div>
+            ) : items.length === 0 ? (
+              <div className="p-12 text-center text-stone-500 text-xs">
+                Zero listings currently pending review. Queue is clear!
+              </div>
+            ) : (
+              <div className="divide-y divide-stone-800/80 max-h-[600px] overflow-y-auto">
+                {items.map((item) => {
+                  const isSelected = selectedItem?.id === item.id;
+                  const primaryImg = item.images.find((im) => im.isPrimary) || item.images[0];
+                  return (
+                    <div
+                      key={item.id}
+                      onClick={() => handleSelectItem(item)}
+                      className={`p-4 cursor-pointer transition-colors ${
+                        isSelected
+                          ? 'bg-amber-950/20 border-l-4 border-amber-500'
+                          : 'hover:bg-stone-800/50'
+                      }`}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="w-16 h-16 rounded bg-stone-950 border border-stone-800 shrink-0 overflow-hidden flex items-center justify-center">
+                          {primaryImg ? (
+                            <img
+                              src={primaryImg.url}
+                              alt={item.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-xl">🏺</span>
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-white text-sm truncate">
+                            {item.title}
+                          </div>
+                          <div className="text-xs text-stone-400 mt-0.5">
+                            {item.shopName} &bull; {item.categoryName}
+                          </div>
+                          <div className="flex items-center gap-3 mt-2 text-xs">
+                            <span className="text-amber-400 font-bold">
+                              {formatPrice(item.basePriceMinor)}
+                            </span>
+                            <span className="text-stone-500">&bull;</span>
+                            <span className="text-stone-400">
+                              {item.productType.replace('_', ' ')}
+                            </span>
+                            {item.isFragile && (
+                              <span className="text-rose-400 text-[10px] bg-rose-950 px-1.5 py-0.5 rounded border border-rose-900">
+                                FRAGILE
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-end gap-1">
+                          <Badge variant="warning" size="sm">
+                            PENDING
+                          </Badge>
+                          <span className="text-[10px] text-stone-500 mt-1">
+                            {new Date(item.submittedAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+        </div>
+
+        {/* Right: Detailed Product Inspector & Decision Panel */}
+        <div className="lg:col-span-5">
+          {selectedItem ? (
+            <Card className="bg-stone-900 border-stone-800 p-5 space-y-5 sticky top-20 text-white">
+              <div className="border-b border-stone-800 pb-3 flex items-start justify-between">
+                <div>
+                  <h3 className="font-bold text-base line-clamp-1">{selectedItem.title}</h3>
+                  <p className="text-xs text-stone-400">
+                    By {selectedItem.shopName} ({selectedItem.sellerLegalName})
+                  </p>
+                </div>
+                <Badge variant="warning" size="sm">
+                  IN REVIEW
+                </Badge>
+              </div>
+
+              {detailLoading ? (
+                <div className="py-8 text-center text-xs text-stone-400">
+                  Loading craft details & photographs...
+                </div>
               ) : (
-                filteredItems.map((item) => (
-                  <tr key={item.id} className="hover:bg-stone-800/50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div>
-                        <p className="font-semibold text-white">{item.title}</p>
-                        <p className="text-xs text-stone-400 mt-0.5">
-                          Shop: <span className="text-amber-400 font-medium">{item.shopName}</span>{' '}
-                          ({item.sellerName})
+                <>
+                  {/* Photographs Gallery */}
+                  <div>
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-stone-400 mb-2">
+                      Listing Photographs ({selectedItem.images.length})
+                    </h4>
+                    <div className="grid grid-cols-3 gap-2">
+                      {selectedItem.images.map((img) => (
+                        <div
+                          key={img.id}
+                          className="aspect-square bg-stone-950 rounded border border-stone-800 overflow-hidden"
+                        >
+                          <img src={img.url} alt="" className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Craft Specifications */}
+                  <div className="space-y-2 text-xs">
+                    <div className="flex justify-between py-1 border-b border-stone-800/60">
+                      <span className="text-stone-400">Category:</span>
+                      <span className="font-medium">{selectedItem.categoryName}</span>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-stone-800/60">
+                      <span className="text-stone-400">Price:</span>
+                      <span className="font-medium text-amber-400">
+                        {formatPrice(selectedItem.basePriceMinor)}
+                      </span>
+                    </div>
+                    {selectedItem.materials && selectedItem.materials.length > 0 && (
+                      <div className="flex justify-between py-1 border-b border-stone-800/60">
+                        <span className="text-stone-400">Materials:</span>
+                        <span className="font-medium text-right">
+                          {selectedItem.materials.join(', ')}
+                        </span>
+                      </div>
+                    )}
+                    {selectedItem.techniques && selectedItem.techniques.length > 0 && (
+                      <div className="flex justify-between py-1 border-b border-stone-800/60">
+                        <span className="text-stone-400">Techniques:</span>
+                        <span className="font-medium text-right">
+                          {selectedItem.techniques.join(', ')}
+                        </span>
+                      </div>
+                    )}
+                    {selectedDetail?.description && (
+                      <div className="pt-2">
+                        <span className="text-stone-400 block mb-1">Description:</span>
+                        <p className="text-stone-300 text-xs bg-stone-950 p-2 rounded border border-stone-800 max-h-24 overflow-y-auto">
+                          {selectedDetail.description}
                         </p>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-xs bg-stone-800 text-stone-300 px-2 py-0.5 rounded font-mono">
-                        {item.category.name}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-white">
-                      ₹
-                      {(item.basePriceMinor / 100).toLocaleString('en-IN', {
-                        minimumFractionDigits: 2,
-                      })}
-                    </td>
-                    <td className="px-6 py-4 font-medium">{item.totalStock} units</td>
-                    <td className="px-6 py-4 text-xs text-stone-400">
-                      {new Date(item.submittedAt).toLocaleDateString('en-IN')}
-                    </td>
-                    <td className="px-6 py-4">{getStatusBadge(item.moderationStatus)}</td>
-                    <td className="px-6 py-4 text-right">
+                    )}
+                  </div>
+
+                  {/* Decision Controls */}
+                  <div className="pt-3 border-t border-stone-800 space-y-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-stone-300 mb-1">
+                        Authenticity Rationale Code:
+                      </label>
+                      <select
+                        value={reasonCode}
+                        onChange={(e) => setReasonCode(e.target.value)}
+                        className="w-full p-2 bg-stone-950 border border-stone-800 rounded text-xs text-white focus:outline-none focus:border-amber-500"
+                      >
+                        <option value="AUTHENTIC_HANDCRAFT">
+                          Authentic Handcrafted Artisan Craft
+                        </option>
+                        <option value="PHOTOGRAPHY_APPROVED">
+                          Studio Photography Standard Compliant
+                        </option>
+                        <option value="POLICY_VIOLATION">
+                          Commercial / Factory Made Violation
+                        </option>
+                        <option value="MISLEADING_DESCRIPTION">
+                          Inadequate Craft Technique Disclosure
+                        </option>
+                        <option value="UNSAFE_MATERIALS">
+                          Prohibited / Restricted Material Flag
+                        </option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-stone-300 mb-1">
+                        Moderator Audit Feedback (Mandatory for rejection):
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={moderatorNotes}
+                        onChange={(e) => setModeratorNotes(e.target.value)}
+                        placeholder="Provide feedback for the artisan..."
+                        className="w-full p-2 bg-stone-950 border border-stone-800 rounded text-xs text-white focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+
+                    <div className="flex gap-2 pt-1">
                       <Button
                         variant="primary"
-                        className="px-3 py-1 text-xs"
-                        onClick={() => setSelectedItem(item)}
+                        size="sm"
+                        disabled={submitting}
+                        onClick={() => handleDecision('APPROVE')}
                       >
-                        Inspect & Review
+                        Approve & Publish
                       </Button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </Card>
-
-      {/* Review Drawer / Modal */}
-      {selectedItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 overflow-y-auto">
-          <div className="bg-stone-900 border border-stone-800 rounded-xl max-w-2xl w-full p-6 shadow-2xl text-stone-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-stone-800 mb-4">
-              <div>
-                <span className="text-xs font-semibold text-amber-500 uppercase tracking-wider">
-                  Compliance Audit
-                </span>
-                <h2 className="text-lg font-bold text-white mt-0.5">{selectedItem.title}</h2>
-              </div>
-              <button
-                onClick={() => setSelectedItem(null)}
-                className="text-stone-400 hover:text-white font-bold text-lg"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Segregation of Duties Notice */}
-            <div className="mb-4 p-3 bg-amber-950/50 border border-amber-600/40 rounded-lg text-xs text-amber-300">
-              <span className="font-semibold">Segregation of Duties Enforcement:</span> Platform
-              moderators are strictly barred from reviewing listings from their own registered
-              seller account.
-            </div>
-
-            {/* Listing Details */}
-            <div className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-4 bg-stone-950 p-3 rounded-lg border border-stone-800">
-                <div>
-                  <span className="text-stone-500">Artisan / Shop:</span>
-                  <p className="font-medium text-white">
-                    {selectedItem.shopName} ({selectedItem.sellerName})
-                  </p>
-                </div>
-                <div>
-                  <span className="text-stone-500">Category & Type:</span>
-                  <p className="font-medium text-white">
-                    {selectedItem.category.name} • {selectedItem.productType}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-stone-500">Price & SKU:</span>
-                  <p className="font-medium text-white">
-                    ₹{(selectedItem.basePriceMinor / 100).toFixed(2)} • {selectedItem.sku}
-                  </p>
-                </div>
-                <div>
-                  <span className="text-stone-500">Packaging Specs:</span>
-                  <p className="font-medium text-white">
-                    {selectedItem.dimensions.lengthMm}×{selectedItem.dimensions.widthMm}×
-                    {selectedItem.dimensions.heightMm}mm ({selectedItem.dimensions.weightGrams}g)
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <span className="text-stone-400 font-semibold">Artisan Description:</span>
-                <p className="mt-1 text-stone-300 leading-relaxed bg-stone-950/50 p-2.5 rounded border border-stone-800">
-                  {selectedItem.description}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-stone-400 font-semibold">Raw Materials:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {selectedItem.materials.map((m) => (
-                      <span
-                        key={m}
-                        className="px-2 py-0.5 bg-stone-800 text-stone-300 rounded text-[11px]"
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        disabled={submitting}
+                        onClick={() => handleDecision('REJECT')}
                       >
-                        {m}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <span className="text-stone-400 font-semibold">Artisan Techniques:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {selectedItem.techniques.map((t) => (
-                      <span
-                        key={t}
-                        className="px-2 py-0.5 bg-stone-800 text-stone-300 rounded text-[11px]"
-                      >
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Photographs Gallery */}
-              <div>
-                <span className="text-stone-400 font-semibold">
-                  Product Photographs ({selectedItem.mediaUrls.length}):
-                </span>
-                <div className="grid grid-cols-2 gap-3 mt-1.5">
-                  {selectedItem.mediaUrls.map((url, idx) => (
-                    <div
-                      key={idx}
-                      className="h-24 bg-stone-800 rounded flex items-center justify-center border border-stone-700 text-stone-400 text-xs"
-                    >
-                      [Photo Preview #{idx + 1}]
+                        Reject Listing
+                      </Button>
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Decision Form */}
-              <div className="pt-4 border-t border-stone-800 space-y-3">
-                <span className="text-stone-200 font-bold text-sm block">
-                  Record Moderation Decision
-                </span>
-
-                <div>
-                  <label className="block text-stone-400 mb-1">Reason Code</label>
-                  <select
-                    value={reasonCode}
-                    onChange={(e) => setReasonCode(e.target.value)}
-                    className="w-full px-3 py-1.5 bg-stone-800 border border-stone-700 rounded text-xs text-white"
-                  >
-                    <option value="AUTHENTIC_HANDCRAFT">
-                      Authentic Handcrafted Verification (PASS)
-                    </option>
-                    <option value="QUALITY_VERIFIED">
-                      Quality & Safety Standards Verified (PASS)
-                    </option>
-                    <option value="INSUFFICIENT_PROVENANCE">
-                      Insufficient Handcrafted Provenance / Factory Resale
-                    </option>
-                    <option value="POLICY_VIOLATION">
-                      Prohibited Commercial Goods Policy Breach
-                    </option>
-                    <option value="MISSING_SPECS">
-                      Inaccurate Dimensions / Incomplete Specifications
-                    </option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-stone-400 mb-1">
-                    Moderator Notes (Required for rejection/suspension)
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={moderatorNotes}
-                    onChange={(e) => setModeratorNotes(e.target.value)}
-                    placeholder="Provide specific, actionable feedback for the artisan..."
-                    className="w-full px-3 py-1.5 bg-stone-800 border border-stone-700 rounded text-xs text-white"
-                  />
-                </div>
-
-                <div className="flex gap-3 pt-2">
-                  <Button
-                    variant="primary"
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white"
-                    onClick={() => handleDecision('APPROVED')}
-                  >
-                    Approve & Publish Listing
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    className="flex-1 bg-rose-700 hover:bg-rose-600 text-white"
-                    onClick={() => handleDecision('REJECTED')}
-                  >
-                    Reject with Feedback
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    className="bg-stone-800 hover:bg-stone-700 text-stone-300"
-                    onClick={() => handleDecision('SUSPENDED')}
-                  >
-                    Suspend
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
+                  </div>
+                </>
+              )}
+            </Card>
+          ) : (
+            <Card className="bg-stone-900 border-stone-800 p-8 text-center text-stone-500 text-xs">
+              Select a craft listing from the pending queue to inspect photographs, materials, and
+              take a moderation decision.
+            </Card>
+          )}
         </div>
-      )}
+      </div>
     </main>
   );
 }

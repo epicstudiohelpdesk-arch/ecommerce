@@ -12,6 +12,7 @@ import { CheckoutModule } from './modules/checkout/checkout.module';
 import { LedgerModule } from './modules/ledger/ledger.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { ShippingModule } from './modules/shipping/shipping.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { CsrfProtectionMiddleware } from './common/middleware/csrf.middleware';
 
 @Module({
@@ -32,6 +33,7 @@ import { CsrfProtectionMiddleware } from './common/middleware/csrf.middleware';
     LedgerModule,
     PaymentsModule,
     ShippingModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],

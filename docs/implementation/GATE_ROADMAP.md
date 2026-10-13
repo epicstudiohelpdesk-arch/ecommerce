@@ -321,11 +321,31 @@ Every gate is an auditable milestone governed by the following rules:
 
 ---
 
-### Gate G11: Courier Logistics, Shipping & Tracking Integration
+### Gate G11: Courier Integration, Shipping Operations & Order Fulfilment
 
-- **Focus:** Courier provider adapter, shipping label generation per artisan sub-order, tracking milestone webhook ingestion, automated order status synchronization.
-- **Dependencies:** G09.
-- **Exit Criteria:** Successful mock shipment dispatch, tracking webhook ingestion test, and delivery milestone confirmation.
+- **Status:** **PASSED** (Ready for human review; stop condition enforced before G12).
+- **Focus:** Complete production-oriented fulfilment and shipping architecture connecting marketplace sub-orders to courier providers. Pluggable provider abstraction (`IShippingProvider`) with production `Delhivery` Express B2C adapter and deterministic `MockCourier` adapter for hermetic CI. Sub-order shipment booking with unique waybill/AWB assignment, 4x6" thermal shipping label generation/viewing, carrier pickup scheduling, and pre-dispatch shipment cancellation. State machine orchestration across seller sub-orders (`READY_FOR_PICKUP` $\to$ `SHIPPED` on pickup scan $\to$ `DELIVERED` on delivery scan) with automated parent order synchronization (`PARTIALLY_SHIPPED` / `COMPLETED`). Cryptographic tracking webhook ingestion at `POST /shipping/webhooks/:provider` with timing-safe HMAC SHA256 verification, replay resistance, and monotonic status progression guards preventing out-of-order tracking events from regressing shipment states. Multi-tenant isolation (Seller A cannot view or manage Seller B shipments), customer PII protection (customer contact and address withheld from public/customer tracking APIs, printed only on authorized shipping waybills), artisan fulfilment management in `apps/seller-portal`, and multi-vendor customer tracking experience in `apps/storefront` (`/orders/:orderNumber/tracking`).
+- **Dependencies:** G00 through G10 (including G07A) passed and approved.
+- **Deliverables:**
+  - `packages/db/migrations/0004_shipping_enhancements.sql` & `meta/_journal.json` (extended enum with `DELIVERY_FAILED` and `CANCELLED`, pickup date, snapshots, metadata)
+  - `packages/db/src/schema/shipping.ts` (updated Drizzle schema definition)
+  - `packages/validation/src/shipping.ts` (Zod validation schemas for booking, pickups, cancellations, queries, and webhooks)
+  - `packages/api-contracts/src/shipping.ts` (TypeScript contracts and DTOs for shipments, labels, pickups, and tracking)
+  - `apps/api/src/modules/shipping/interfaces/shipping-provider.interface.ts` (`IShippingProvider` interface contract)
+  - `apps/api/src/modules/shipping/providers/delhivery.provider.ts` (production Delhivery Express API client)
+  - `apps/api/src/modules/shipping/providers/mock-courier.provider.ts` (hermetic mock courier client with HMAC signing)
+  - `apps/api/src/modules/shipping/shipping.service.ts` (core shipping engine with booking, state transitions, idempotency, and audit logging)
+  - `apps/api/src/modules/shipping/seller-shipping.controller.ts` (tenant-isolated artisan fulfilment endpoints)
+  - `apps/api/src/modules/shipping/customer-tracking.controller.ts` (customer and public tracking endpoints)
+  - `apps/api/src/modules/shipping/shipping-webhook.controller.ts` (authoritative cryptographic webhook ingestion)
+  - `apps/api/src/modules/shipping/shipping.module.ts` (wired into `AppModule`)
+  - `apps/api/test/shipping.integration.spec.ts` (17 automated integration tests)
+  - `apps/seller-portal/src/app/orders/[subOrderId]/page.tsx` & `src/lib/api.ts` (booking modal, label preview, pickup schedule, cancellation, tracking timeline)
+  - `apps/storefront/src/app/orders/[orderNumber]/tracking/page.tsx` & `src/lib/api.ts` & `/checkout/success/page.tsx` (multi-vendor customer tracking journey)
+  - `docs/api/OPENAPI.yaml` (74 paths, 331 refs, 100% valid)
+  - `docs/implementation/G11_REPORT.md`
+- **Exit Criteria:** 100% passing automated test suite covering serviceability queries, unpaid/unconfirmed order rejection, multi-tenant isolation, waybill generation, booking idempotency, shipping label formatting, access control, pickup scheduling, webhook HMAC verification & forgery rejection, pickup scan transition, delivery scan transition, parent order synchronization, monotonic status guard against out-of-order scans, customer tracking DTO, public tracking privacy, and cancellation constraints; zero fabricated tracking numbers or shipments in production paths; clean production Next.js builds.
+- **Verification Result:** Fully verified on 2026-10-13 via `./scripts/verify-repo.sh` (144/144 tests in `apps/api`, 210 tests monorepo-wide across 8 suites, 9/9 builds successful, 0 lint/type errors, 100% Prettier formatting compliant, OpenAPI 3.1 valid).
 
 ---
 

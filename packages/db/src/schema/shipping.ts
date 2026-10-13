@@ -20,9 +20,11 @@ export const shipmentStatusEnum = pgEnum('shipment_status', [
   'PICKUP_SCHEDULED',
   'IN_TRANSIT',
   'OUT_FOR_DELIVERY',
+  'DELIVERY_FAILED',
   'DELIVERED',
   'RTO_INITIATED',
   'RTO_DELIVERED',
+  'CANCELLED',
 ]);
 
 export const returnStatusEnum = pgEnum('return_status', [
@@ -52,6 +54,11 @@ export const shipments = pgTable(
     lengthMm: integer('length_mm').notNull(),
     widthMm: integer('width_mm').notNull(),
     heightMm: integer('height_mm').notNull(),
+    pickupDate: timestamp('pickup_date', { withTimezone: true, mode: 'date' }),
+    cancellationReason: text('cancellation_reason'),
+    pickupAddressSnapshot: jsonb('pickup_address_snapshot'),
+    deliveryAddressSnapshot: jsonb('delivery_address_snapshot'),
+    carrierMetadata: jsonb('carrier_metadata'),
     shippedAt: timestamp('shipped_at', { withTimezone: true, mode: 'date' }),
     deliveredAt: timestamp('delivered_at', { withTimezone: true, mode: 'date' }),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),

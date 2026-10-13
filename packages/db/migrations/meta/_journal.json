@@ -29,6 +29,13 @@
       "when": 1791795000000,
       "tag": "0003_customer_addresses",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791870000000,
+      "tag": "0004_shipping_enhancements",
+      "breakpoints": true
     }
   ]
 }

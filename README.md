@@ -137,4 +137,5 @@ pnpm build
 | **G08**  | Shopping Cart, Checkout & Order Creation Foundation               | **PASSED**                    |
 | **G07A** | Master UI/UX Design System, Design Governance & Blueprint         | **PASSED**                    |
 | **G09**  | Payment Gateway, Marketplace Commissions & Financial Ledger       | **PASSED**                    |
-| **G10**  | Seller Studio, Business Management & Performance Dashboard        | **PASSED** (Ready for Review) |
+| **G10**  | Seller Studio, Business Management & Performance Dashboard        | **PASSED**                    |
+| **G11**  | Courier Integration, Shipping Operations & Order Fulfilment       | **PASSED** (Ready for Review) |

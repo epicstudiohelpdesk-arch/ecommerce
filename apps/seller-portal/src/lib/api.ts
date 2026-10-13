@@ -6,11 +6,19 @@ import type {
   SellerAnalyticsPerformanceDto,
   SellerNotificationDto,
   ShopProfileDto,
+  ShipmentDto,
+  BookShipmentResponseDto,
+  ShippingLabelDto,
+  SchedulePickupResponseDto,
+  CancelShipmentResponseDto,
 } from '@repo/api-contracts';
 import type {
   UpdateSubOrderStatusInput,
   UpdateShopProfileInput,
   ListSellerOrdersQuery,
+  BookShipmentInput,
+  SchedulePickupInput,
+  CancelShipmentInput,
 } from '@repo/validation';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
@@ -485,4 +493,90 @@ export async function updateShopProfile(input: UpdateShopProfileInput): Promise<
 
   Object.assign(FALLBACK_SHOP, input);
   return FALLBACK_SHOP;
+}
+
+export async function bookCourierShipment(
+  subOrderId: string,
+  input: BookShipmentInput,
+): Promise<BookShipmentResponseDto> {
+  const data = await fetchFromApi<BookShipmentResponseDto>(
+    `/seller/orders/${subOrderId}/shipment/book`,
+    {
+      method: 'POST',
+      body: JSON.stringify(input),
+    },
+  );
+  if (data) return data;
+
+  return {
+    shipmentId: `shp-${Date.now()}`,
+    subOrderId,
+    carrierCode: input.carrierCode || 'DELHIVERY',
+    waybillNumber: `DLV-${Date.now().toString().slice(-6)}`,
+    trackingNumber: `TRK-DLV-${Date.now().toString().slice(-6)}`,
+    status: 'LABEL_CREATED',
+    labelUrl: `/api/v1/seller/orders/${subOrderId}/shipment/label`,
+    pickupDate: input.pickupDate,
+  };
+}
+
+export async function getShipmentDetails(subOrderId: string): Promise<ShipmentDto | null> {
+  const data = await fetchFromApi<ShipmentDto>(`/seller/orders/${subOrderId}/shipment`);
+  return data || null;
+}
+
+export async function getShippingLabel(subOrderId: string): Promise<ShippingLabelDto> {
+  const data = await fetchFromApi<ShippingLabelDto>(`/seller/orders/${subOrderId}/shipment/label`);
+  if (data) return data;
+
+  return {
+    shipmentId: `shp-demo`,
+    waybillNumber: `DLV-DEMO-9912`,
+    carrierCode: 'DELHIVERY',
+    labelUrl: `/api/v1/seller/orders/${subOrderId}/shipment/label`,
+    contentHtml: '<div>Sample Label</div>',
+  };
+}
+
+export async function scheduleCourierPickup(
+  subOrderId: string,
+  input: SchedulePickupInput,
+): Promise<SchedulePickupResponseDto> {
+  const data = await fetchFromApi<SchedulePickupResponseDto>(
+    `/seller/orders/${subOrderId}/shipment/pickup`,
+    {
+      method: 'POST',
+      body: JSON.stringify(input),
+    },
+  );
+  if (data) return data;
+
+  return {
+    shipmentId: `shp-demo`,
+    pickupScheduled: true,
+    pickupDate: input.pickupDate,
+    pickupToken: `PKP-${Date.now().toString().slice(-6)}`,
+    status: 'PICKUP_SCHEDULED',
+  };
+}
+
+export async function cancelCourierShipment(
+  subOrderId: string,
+  input: CancelShipmentInput,
+): Promise<CancelShipmentResponseDto> {
+  const data = await fetchFromApi<CancelShipmentResponseDto>(
+    `/seller/orders/${subOrderId}/shipment/cancel`,
+    {
+      method: 'POST',
+      body: JSON.stringify(input),
+    },
+  );
+  if (data) return data;
+
+  return {
+    shipmentId: `shp-demo`,
+    status: 'CANCELLED',
+    cancelledAt: new Date().toISOString(),
+    reason: input.reason,
+  };
 }

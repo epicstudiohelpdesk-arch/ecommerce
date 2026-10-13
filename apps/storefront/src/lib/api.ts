@@ -1,4 +1,9 @@
-import type { CategoryDto, ProductSummaryDto, ProductDetailDto } from '@repo/api-contracts';
+import type {
+  CategoryDto,
+  ProductSummaryDto,
+  ProductDetailDto,
+  CustomerTrackingResponseDto,
+} from '@repo/api-contracts';
 import type { ListPublicCatalogQuery } from '@repo/validation';
 
 export type StorefrontCatalogParams = Partial<ListPublicCatalogQuery>;
@@ -221,5 +226,27 @@ export async function fetchOrderDetails(orderNumber: string) {
   const res = await fetch(`${baseUrl}/checkout/orders/${encodeURIComponent(orderNumber)}`, {
     credentials: 'include',
   });
+  return res.json();
+}
+
+/**
+ * Fetches multi-vendor order tracking milestones across all artisanal shipments.
+ */
+export async function fetchCustomerTracking(
+  orderNumber: string,
+): Promise<{ success: boolean; data?: CustomerTrackingResponseDto }> {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/orders/${encodeURIComponent(orderNumber)}/tracking`, {
+    credentials: 'include',
+  });
+  return res.json();
+}
+
+/**
+ * Fetches public tracking by tracking number or waybill number.
+ */
+export async function fetchPublicTracking(trackingNumber: string) {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/shipping/track/${encodeURIComponent(trackingNumber)}`);
   return res.json();
 }

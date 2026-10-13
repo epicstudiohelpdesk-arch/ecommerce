@@ -160,16 +160,22 @@ function OrderSuccessContent() {
       {/* Navigation Buttons */}
       <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
         <Link
+          href={`/orders/${encodeURIComponent(orderNumber)}/tracking`}
+          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-semibold text-xs transition-colors shadow-sm flex items-center justify-center gap-1.5"
+        >
+          <span>🚚</span> Track Order Fulfilment
+        </Link>
+        <Link
           href="/categories"
           className="w-full sm:w-auto px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs transition-colors shadow-sm"
         >
-          Explore More Artisan Crafts &rarr;
+          Explore More Crafts &rarr;
         </Link>
         <Link
           href="/"
           className="w-full sm:w-auto px-6 py-3 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 font-semibold text-xs transition-colors border border-stone-200"
         >
-          Return to Marketplace Home
+          Marketplace Home
         </Link>
       </div>
     </div>

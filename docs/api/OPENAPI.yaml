@@ -1176,6 +1176,112 @@ paths:
         '409':
           $ref: '#/components/responses/ConflictError'
 
+  /payments/initiate:
+    post:
+      summary: Initiate Payment Attempt
+      operationId: initiatePayment
+      tags: [Payments & Finance]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitiatePaymentRequest'
+      responses:
+        '201':
+          description: Payment attempt initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitiatePaymentResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /payments/verify:
+    post:
+      summary: Verify Client Checkout Signature & Capture Payment
+      operationId: verifyPayment
+      tags: [Payments & Finance]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyPaymentRequest'
+      responses:
+        '200':
+          description: Payment verified and captured successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerifyPaymentResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /payments/order/{orderNumber}/status:
+    get:
+      summary: Retrieve Order Payment Status & Attempts
+      operationId: getPaymentStatus
+      tags: [Payments & Finance]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: orderNumber
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order payment status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentStatusResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /payments/refund:
+    post:
+      summary: Request Artisan Sub-Order Refund
+      operationId: requestRefund
+      tags: [Payments & Finance]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRequest'
+      responses:
+        '201':
+          description: Refund requested successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
   /payments/webhooks/{provider}:
     post:
       summary: Ingest Payment Gateway Webhook Event
@@ -1228,6 +1334,90 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SellerBalanceResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /seller/finance/ledger:
+    get:
+      summary: Retrieve Artisan Financial Ledger Entries
+      operationId: getSellerLedger
+      tags: [Payments & Finance]
+      security:
+        - BearerAuth: []
+        - CookieAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Chronological seller financial ledger entries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SellerLedgerResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /admin/finance/reconciliation:
+    get:
+      summary: Audit Gateway & Financial Ledger Reconciliation
+      operationId: getReconciliationReport
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Comprehensive reconciliation audit report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReconciliationReportResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /admin/finance/refunds/{refundId}/process:
+    post:
+      summary: Process or Reject Artisan Sub-Order Refund Request
+      operationId: processRefund
+      tags: [Administration]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: refundId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcessRefundRequest'
+      responses:
+        '200':
+          description: Refund processed and ledger reversed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefundResponse'
+        '400':
+          $ref: '#/components/responses/ValidationError'
         '401':
           $ref: '#/components/responses/UnauthorizedError'
         '403':
@@ -2232,6 +2422,266 @@ components:
               type: string
             paymentClientSecret:
               type: string
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    InitiatePaymentRequest:
+      type: object
+      properties:
+        orderId:
+          type: string
+          format: uuid
+        orderNumber:
+          type: string
+        provider:
+          type: string
+          enum: [RAZORPAY, STRIPE, MOCK_PROVIDER]
+          default: RAZORPAY
+        idempotencyKey:
+          type: string
+
+    InitiatePaymentResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            paymentAttemptId:
+              type: string
+              format: uuid
+            orderId:
+              type: string
+              format: uuid
+            orderNumber:
+              type: string
+            provider:
+              type: string
+            providerOrderId:
+              type: string
+            amountMinor:
+              type: integer
+            currency:
+              type: string
+            keyId:
+              type: string
+            status:
+              type: string
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    VerifyPaymentRequest:
+      type: object
+      required: [orderNumber, providerPaymentId, providerOrderId, providerSignature]
+      properties:
+        orderNumber:
+          type: string
+        paymentAttemptId:
+          type: string
+          format: uuid
+        providerPaymentId:
+          type: string
+        providerOrderId:
+          type: string
+        providerSignature:
+          type: string
+
+    VerifyPaymentResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            orderNumber:
+              type: string
+            paymentStatus:
+              type: string
+            orderStatus:
+              type: string
+            paymentAttemptId:
+              type: string
+              format: uuid
+            providerPaymentId:
+              type: string
+            capturedAt:
+              type: string
+              format: date-time
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    PaymentStatusResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            orderNumber:
+              type: string
+            paymentStatus:
+              type: string
+            orderStatus:
+              type: string
+            totalAmountMinor:
+              type: integer
+            currency:
+              type: string
+            canRetry:
+              type: boolean
+            attempts:
+              type: array
+              items:
+                type: object
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    RefundRequest:
+      type: object
+      required: [subOrderId, amountMinor, reason]
+      properties:
+        subOrderId:
+          type: string
+          format: uuid
+        amountMinor:
+          type: integer
+          minimum: 1
+        reason:
+          type: string
+          enum:
+            [
+              CUSTOMER_CANCELLATION,
+              DEFECTIVE_ITEM,
+              ITEM_NOT_RECEIVED,
+              SELLER_UNFULFILLED,
+              DISPUTE_RESOLUTION,
+            ]
+        notes:
+          type: string
+
+    RefundResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            refundNumber:
+              type: string
+            subOrderId:
+              type: string
+              format: uuid
+            paymentAttemptId:
+              type: string
+              format: uuid
+            amountMinor:
+              type: integer
+            currency:
+              type: string
+            reason:
+              type: string
+            status:
+              type: string
+            providerRefundId:
+              type: string
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    ProcessRefundRequest:
+      type: object
+      required: [approved]
+      properties:
+        approved:
+          type: boolean
+        rejectionReason:
+          type: string
+
+    SellerLedgerResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              journalBatchId:
+                type: string
+              accountCode:
+                type: string
+              accountName:
+                type: string
+              entryType:
+                type: string
+                enum: [DEBIT, CREDIT]
+              amountMinor:
+                type: integer
+              currency:
+                type: string
+              description:
+                type: string
+              postedAt:
+                type: string
+                format: date-time
+        meta:
+          $ref: '#/components/schemas/ApiResponseMeta'
+
+    ReconciliationReportResponse:
+      type: object
+      required: [success, data]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            generatedAt:
+              type: string
+              format: date-time
+            totalAttemptsChecked:
+              type: integer
+            stalePendingCount:
+              type: integer
+            amountMismatchCount:
+              type: integer
+            unprocessedWebhooksCount:
+              type: integer
+            unbalancedBatchesCount:
+              type: integer
+            isHealthy:
+              type: boolean
+            discrepancies:
+              type: array
+              items:
+                type: object
         meta:
           $ref: '#/components/schemas/ApiResponseMeta'
 

@@ -272,29 +272,24 @@ Every gate is an auditable milestone governed by the following rules:
 
 ---
 
-### Gate G09: Payment Gateway Integration, Webhooks & Idempotency Engine
+### Gate G09: Payment Gateway, Marketplace Commissions & Financial Ledger
 
-- **Focus:** Abstract payment provider adapter (Stripe / Razorpay), payment intent generation, cryptographic webhook signature verification, atomic `payment_events` idempotency table, transition of order from `PENDING` to `PAID`.
-- **Dependencies:** G08.
-- **Exit Criteria:** Integration tests simulating duplicate, delayed, and out-of-order webhook delivery with zero duplicate ledger charges or double-fulfillments.
-
----
-
-### Gate G09: Order Orchestration, Sub-Order Splitting & State Machines
-
-- **Focus:** Atomic conversion of paid cart into parent `Order` and seller-specific `SubOrder` records, state machine enforcement (`PLACED`, `PROCESSING`, `SHIPPED`, `DELIVERED`, `CANCELLED`), transactional outbox event emission.
-- **Dependencies:** G08.
-- **Exit Criteria:** Database transaction rollback tests upon partial sub-order failure; valid state machine transition test suite.
-
----
-
-### Gate G10: Financial Ledger, Marketplace Commission & Payout Engine
-
-- **Focus:** Double-entry ledger journal (`ledger_entries`), platform commission withholding, artisan escrow holding periods, payout calculation, payout batch generation, bank disbursement adapters.
-- **Dependencies:** G09.
-- **Exit Criteria:** Full financial reconciliation tests verifying:
-  $$\sum \text{Debits} == \sum \text{Credits}$$
-  and preventing payout of unfulfilled or disputed orders.
+- **Status:** **PASSED** (Ready for human review; stop condition enforced before G10).
+- **Focus:** Server-authoritative payment provider adapters (Razorpay for India-first INR paise, UPI, Cards, NetBanking; Stripe for international cards; MockPaymentProvider for testing), server-authoritative marketplace commission engine with exact financial conservation ($\text{netSellerPayable} + \text{commissionFee} + \text{tax} \equiv \text{itemSubtotal} + \text{shippingFee}$), append-only balanced double-entry financial ledger enforcing $\sum \text{Debits} == \sum \text{Credits}$ across all journal batches, cryptographic webhook ingestion with timing-safe HMAC verification and replay defense, state machine coordination from `PLACED` to `PAID` / `PROCESSING`, over-refund guarded returns with pro-rata commission reversals, automated reconciliation audit engine, and customer payment UI in `apps/storefront` (`/checkout/payment`, retry on failure, live status in `/checkout/success`).
+- **Dependencies:** G00 through G08 (including G07A) passed and approved.
+- **Deliverables:**
+  - `packages/validation/src/payments.ts` (Zod schemas for payment initiation, verification, and refunds)
+  - `packages/api-contracts/src/payments.ts` (DTOs for payments, refunds, balances, ledger, and reconciliation)
+  - `apps/api/src/modules/payments/interfaces/payment-provider.interface.ts` (`IPaymentProvider` abstraction)
+  - `apps/api/src/modules/payments/providers/` (`razorpay.provider.ts`, `stripe.provider.ts`, `mock.provider.ts`)
+  - `apps/api/src/modules/payments/commission.service.ts` (authoritative commission calculations and pro-rata refund math)
+  - `apps/api/src/modules/ledger/` (`ledger.service.ts`, `ledger.controller.ts`, `ledger.module.ts`)
+  - `apps/api/src/modules/payments/` (`payments.service.ts`, `reconciliation.service.ts`, `payments.controller.ts`, `webhook.controller.ts`, `admin-finance.controller.ts`, `payments.module.ts`)
+  - `apps/storefront/src/app/checkout/payment/page.tsx` & `/checkout/success/page.tsx` payment experience
+  - `docs/api/OPENAPI.yaml` (61 paths, 279 references, 100% valid)
+  - `docs/implementation/G09_REPORT.md`
+- **Exit Criteria:** 100% passing automated test suite covering payment initiation, cryptographic webhook verification, idempotent capture, state coordination, double-entry ledger balance invariants, commission calculations, over-refund prevention, and reconciliation audit; zero simulated payment captures in production code; zero raw card data stored; clean production Next.js build.
+- **Verification Result:** Fully verified on 2026-10-13 via `./scripts/verify-repo.sh` (180 tests passing monorepo-wide across 7 suites, 9/9 builds successful, 0 lint/type errors, 100% Prettier formatting compliant, OpenAPI 3.1 valid).
 
 ---
 

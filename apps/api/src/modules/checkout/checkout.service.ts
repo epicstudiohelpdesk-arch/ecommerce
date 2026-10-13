@@ -478,12 +478,15 @@ export class CheckoutService {
       customerId: order.customerId,
       totalAmountMinor: order.totalAmountMinor,
       currency: order.currency,
-      paymentStatus: 'PENDING',
-      orderStatus: 'PLACED',
+      paymentStatus: order.paymentStatus,
+      orderStatus: order.orderStatus,
       placedAt: order.placedAt.toISOString(),
       shippingAddress: order.shippingAddress as CustomerAddressDto,
       subOrders,
-      notice: 'Order placed successfully. Awaiting payment authorization (Gate G09 integration).',
+      notice:
+        order.paymentStatus === 'PAID'
+          ? 'Order confirmed and payment captured. Artisans are preparing your handcrafted creations.'
+          : 'Order placed successfully. Awaiting payment authorization (Gate G09 integration).',
     };
   }
 }

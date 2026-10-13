@@ -165,3 +165,61 @@ export function formatMinorPrice(
     maximumFractionDigits: 2,
   }).format(major);
 }
+
+/**
+ * Initiates payment for an order.
+ */
+export async function initiatePayment(
+  orderNumber: string,
+  provider: 'RAZORPAY' | 'STRIPE' = 'RAZORPAY',
+) {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/payments/initiate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ orderNumber, provider }),
+  });
+  return res.json();
+}
+
+/**
+ * Verifies client payment completion callback.
+ */
+export async function verifyPayment(input: {
+  orderNumber: string;
+  providerOrderId: string;
+  providerPaymentId: string;
+  providerSignature: string;
+}) {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/payments/verify`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(input),
+  });
+  return res.json();
+}
+
+/**
+ * Fetches order payment status and attempts.
+ */
+export async function fetchPaymentStatus(orderNumber: string) {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/payments/order/${encodeURIComponent(orderNumber)}/status`, {
+    credentials: 'include',
+  });
+  return res.json();
+}
+
+/**
+ * Fetches confirmed order details by order number.
+ */
+export async function fetchOrderDetails(orderNumber: string) {
+  const baseUrl = getApiBaseUrl();
+  const res = await fetch(`${baseUrl}/checkout/orders/${encodeURIComponent(orderNumber)}`, {
+    credentials: 'include',
+  });
+  return res.json();
+}

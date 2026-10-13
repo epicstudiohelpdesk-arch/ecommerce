@@ -78,8 +78,8 @@ export interface CheckoutOrderConfirmationDto {
   customerId: string;
   totalAmountMinor: number;
   currency: string;
-  paymentStatus: 'PENDING';
-  orderStatus: 'PLACED';
+  paymentStatus: 'PENDING' | 'AUTHORIZED' | 'PAID' | 'FAILED' | 'REFUNDED';
+  orderStatus: 'PLACED' | 'PROCESSING' | 'PARTIALLY_SHIPPED' | 'COMPLETED' | 'CANCELLED';
   placedAt: string;
   shippingAddress: CustomerAddressDto;
   subOrders: SubOrderSummaryDto[];

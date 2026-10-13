@@ -185,9 +185,9 @@ export default function CheckoutPage() {
         );
       }
 
-      // 3. Clear cart client state and navigate to success page
+      // 3. Clear cart client state and navigate to payment processing page
       await refreshCart();
-      router.push(`/checkout/success?orderNumber=${confirmData.data.orderNumber}`);
+      router.push(`/checkout/payment?orderNumber=${confirmData.data.orderNumber}`);
     } catch (err) {
       setErrorMessage((err as Error).message || 'An unexpected error occurred during checkout');
     } finally {

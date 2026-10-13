@@ -5,6 +5,10 @@ import {
   fetchCategories,
   fetchProducts,
   fetchProductBySlug,
+  initiatePayment,
+  verifyPayment,
+  fetchPaymentStatus,
+  fetchOrderDetails,
 } from '../src/lib/api';
 import type { ProductDetailDto } from '@repo/api-contracts';
 
@@ -233,6 +237,77 @@ describe('Storefront Client & Utilities', () => {
       expect(isAvailable(readyToShipInStock)).toBe(true);
       expect(isAvailable(readyToShipOutOfStock)).toBe(false);
       expect(isAvailable(madeToOrderZeroStock)).toBe(true);
+    });
+  });
+
+  describe('Payment API Client Methods', () => {
+    it('initiatePayment posts to /payments/initiate with orderNumber and provider', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        json: () => Promise.resolve({ success: true, data: { paymentAttemptId: 'att_1' } }),
+      });
+      global.fetch = mockFetch;
+
+      const res = await initiatePayment('ORD-123', 'RAZORPAY');
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://localhost:4000/api/v1/payments/initiate',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ orderNumber: 'ORD-123', provider: 'RAZORPAY' }),
+        }),
+      );
+      expect(res.success).toBe(true);
+    });
+
+    it('verifyPayment posts to /payments/verify with signature and order details', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        json: () => Promise.resolve({ success: true, data: { paymentStatus: 'PAID' } }),
+      });
+      global.fetch = mockFetch;
+
+      const payload = {
+        orderNumber: 'ORD-123',
+        providerOrderId: 'order_rzp_1',
+        providerPaymentId: 'pay_rzp_1',
+        providerSignature: 'sig_123',
+      };
+      const res = await verifyPayment(payload);
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://localhost:4000/api/v1/payments/verify',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(payload),
+        }),
+      );
+      expect(res.data.paymentStatus).toBe('PAID');
+    });
+
+    it('fetchPaymentStatus calls GET /payments/order/:orderNumber/status', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        json: () =>
+          Promise.resolve({ success: true, data: { paymentStatus: 'PAID', canRetry: false } }),
+      });
+      global.fetch = mockFetch;
+
+      const res = await fetchPaymentStatus('ORD-123');
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://localhost:4000/api/v1/payments/order/ORD-123/status',
+        expect.objectContaining({ credentials: 'include' }),
+      );
+      expect(res.data.paymentStatus).toBe('PAID');
+    });
+
+    it('fetchOrderDetails calls GET /checkout/orders/:orderNumber', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        json: () => Promise.resolve({ success: true, data: { orderNumber: 'ORD-123' } }),
+      });
+      global.fetch = mockFetch;
+
+      const res = await fetchOrderDetails('ORD-123');
+      expect(mockFetch).toHaveBeenCalledWith(
+        'http://localhost:4000/api/v1/checkout/orders/ORD-123',
+        expect.objectContaining({ credentials: 'include' }),
+      );
+      expect(res.data.orderNumber).toBe('ORD-123');
     });
   });
 });

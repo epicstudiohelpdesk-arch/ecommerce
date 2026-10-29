@@ -62,7 +62,11 @@ describe('Schema & Referential Integrity Tests', () => {
       'return_requests',
       'reviews',
       'support_tickets',
+      'support_ticket_messages',
       'disputes',
+      'policy_reports',
+      'risk_cases',
+      'privacy_requests',
       'outbox_events',
     ];
 

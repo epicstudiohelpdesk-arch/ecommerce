@@ -34,7 +34,15 @@ import {
   payoutTransactions,
 } from './ledger.js';
 import { shipments, shipmentMilestones, returnRequests } from './shipping.js';
-import { reviews, supportTickets, disputes } from './support.js';
+import {
+  reviews,
+  supportTickets,
+  supportTicketMessages,
+  disputes,
+  policyReports,
+  riskCases,
+  privacyRequests,
+} from './support.js';
 
 // 1. Users Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -375,13 +383,37 @@ export const reviewsRelations = relations(reviews, ({ one }) => ({
   }),
 }));
 
-export const supportTicketsRelations = relations(supportTickets, ({ one }) => ({
+export const supportTicketsRelations = relations(supportTickets, ({ one, many }) => ({
   creator: one(users, {
     fields: [supportTickets.creatorId],
     references: [users.id],
   }),
   assignedAgent: one(users, {
     fields: [supportTickets.assignedAgentId],
+    references: [users.id],
+  }),
+  order: one(customerOrders, {
+    fields: [supportTickets.orderId],
+    references: [customerOrders.id],
+  }),
+  subOrder: one(subOrders, {
+    fields: [supportTickets.subOrderId],
+    references: [subOrders.id],
+  }),
+  product: one(products, {
+    fields: [supportTickets.productId],
+    references: [products.id],
+  }),
+  messages: many(supportTicketMessages),
+}));
+
+export const supportTicketMessagesRelations = relations(supportTicketMessages, ({ one }) => ({
+  ticket: one(supportTickets, {
+    fields: [supportTicketMessages.ticketId],
+    references: [supportTickets.id],
+  }),
+  sender: one(users, {
+    fields: [supportTicketMessages.senderId],
     references: [users.id],
   }),
 }));
@@ -401,6 +433,35 @@ export const disputesRelations = relations(disputes, ({ one }) => ({
   }),
   resolver: one(users, {
     fields: [disputes.resolvedBy],
+    references: [users.id],
+  }),
+}));
+
+export const policyReportsRelations = relations(policyReports, ({ one }) => ({
+  reporter: one(users, {
+    fields: [policyReports.reporterId],
+    references: [users.id],
+  }),
+  reviewer: one(users, {
+    fields: [policyReports.assignedReviewerId],
+    references: [users.id],
+  }),
+}));
+
+export const riskCasesRelations = relations(riskCases, ({ one }) => ({
+  investigator: one(users, {
+    fields: [riskCases.assignedInvestigatorId],
+    references: [users.id],
+  }),
+}));
+
+export const privacyRequestsRelations = relations(privacyRequests, ({ one }) => ({
+  user: one(users, {
+    fields: [privacyRequests.userId],
+    references: [users.id],
+  }),
+  assignedStaff: one(users, {
+    fields: [privacyRequests.assignedTo],
     references: [users.id],
   }),
 }));

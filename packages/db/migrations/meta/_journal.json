@@ -36,6 +36,13 @@
       "when": 1791870000000,
       "tag": "0004_shipping_enhancements",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791880000000,
+      "tag": "0005_trust_support_compliance",
+      "breakpoints": true
     }
   ]
 }

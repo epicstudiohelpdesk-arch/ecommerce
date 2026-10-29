@@ -8,3 +8,4 @@ export * from './checkout.js';
 export * from './payments.js';
 export * from './shipping.js';
 export * from './admin.js';
+export * from './trust-support.js';

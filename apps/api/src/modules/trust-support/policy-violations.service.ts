@@ -164,7 +164,10 @@ export class PolicyViolationsService {
       .from(this.databaseService.schema.policyReports)
       .leftJoin(
         this.databaseService.schema.users,
-        eq(this.databaseService.schema.policyReports.reporterId, this.databaseService.schema.users.id),
+        eq(
+          this.databaseService.schema.policyReports.reporterId,
+          this.databaseService.schema.users.id,
+        ),
       )
       .where(whereClause)
       .orderBy(desc(this.databaseService.schema.policyReports.createdAt))
@@ -223,7 +226,10 @@ export class PolicyViolationsService {
       .from(this.databaseService.schema.policyReports)
       .leftJoin(
         this.databaseService.schema.users,
-        eq(this.databaseService.schema.policyReports.reporterId, this.databaseService.schema.users.id),
+        eq(
+          this.databaseService.schema.policyReports.reporterId,
+          this.databaseService.schema.users.id,
+        ),
       )
       .where(eq(this.databaseService.schema.policyReports.id, reportId))
       .limit(1);
@@ -292,14 +298,9 @@ export class PolicyViolationsService {
         },
       );
     } else if (input.actionTaken === 'SELLER_SUSPENDED' && report.targetType === 'SELLER') {
-      await this.sellerReviewService.suspendSeller(
-        report.targetId,
-        reviewerId,
-        reviewerRole,
-        {
-          reason: `Seller suspended following policy report ${report.reportNumber}: ${input.reviewNotes}`,
-        },
-      );
+      await this.sellerReviewService.suspendSeller(report.targetId, reviewerId, reviewerRole, {
+        reason: `Seller suspended following policy report ${report.reportNumber}: ${input.reviewNotes}`,
+      });
     }
 
     const now = new Date();

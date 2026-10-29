@@ -16,18 +16,8 @@ import { SellerSupportController } from './seller-support.controller';
 import { AdminTrustSupportController } from './admin-trust-support.controller';
 
 @Module({
-  imports: [
-    DatabaseModule,
-    AuditModule,
-    PaymentsModule,
-    CatalogModule,
-    SellersModule,
-  ],
-  controllers: [
-    CustomerSupportController,
-    SellerSupportController,
-    AdminTrustSupportController,
-  ],
+  imports: [DatabaseModule, AuditModule, PaymentsModule, CatalogModule, SellersModule],
+  controllers: [CustomerSupportController, SellerSupportController, AdminTrustSupportController],
   providers: [
     SupportCasesService,
     DisputesService,

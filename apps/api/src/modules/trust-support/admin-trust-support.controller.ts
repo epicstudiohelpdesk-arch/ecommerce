@@ -99,10 +99,7 @@ export class AdminTrustSupportController {
     'TRUST_SAFETY',
     'READ_ONLY_ANALYST',
   )
-  async getTicket(
-    @CurrentUser() user: AuthenticatedUserPayload,
-    @Param('id') id: string,
-  ) {
+  async getTicket(@CurrentUser() user: AuthenticatedUserPayload, @Param('id') id: string) {
     const ticket = await this.supportCasesService.getTicket(id, user.id, getUserRole(user));
     return createSuccessResponse(ticket);
   }
@@ -248,10 +245,7 @@ export class AdminTrustSupportController {
     'TRUST_SAFETY',
     'READ_ONLY_ANALYST',
   )
-  async getDispute(
-    @CurrentUser() user: AuthenticatedUserPayload,
-    @Param('id') id: string,
-  ) {
+  async getDispute(@CurrentUser() user: AuthenticatedUserPayload, @Param('id') id: string) {
     const dispute = await this.disputesService.getDispute(id, user.id, getUserRole(user));
     return createSuccessResponse(dispute);
   }
@@ -358,20 +352,14 @@ export class AdminTrustSupportController {
 
   @Get('risk-cases/:id')
   @Roles('SUPER_ADMIN', 'TRUST_SAFETY')
-  async getRiskCase(
-    @CurrentUser() user: AuthenticatedUserPayload,
-    @Param('id') id: string,
-  ) {
+  async getRiskCase(@CurrentUser() user: AuthenticatedUserPayload, @Param('id') id: string) {
     const riskCase = await this.riskReviewService.getRiskCase(id, getUserRole(user));
     return createSuccessResponse(riskCase);
   }
 
   @Post('risk-cases')
   @Roles('SUPER_ADMIN', 'TRUST_SAFETY')
-  async createRiskCase(
-    @CurrentUser() user: AuthenticatedUserPayload,
-    @Body() rawBody: unknown,
-  ) {
+  async createRiskCase(@CurrentUser() user: AuthenticatedUserPayload, @Body() rawBody: unknown) {
     const parseResult = createRiskCaseSchema.safeParse(rawBody);
     if (!parseResult.success) {
       throw new BadRequestException({
@@ -381,10 +369,7 @@ export class AdminTrustSupportController {
       });
     }
 
-    const riskCase = await this.riskReviewService.createRiskCase(
-      user.id,
-      parseResult.data,
-    );
+    const riskCase = await this.riskReviewService.createRiskCase(user.id, parseResult.data);
     return createSuccessResponse(riskCase);
   }
 
@@ -442,10 +427,7 @@ export class AdminTrustSupportController {
 
   @Get('privacy-requests/:id')
   @Roles('SUPER_ADMIN', 'TRUST_SAFETY')
-  async getPrivacyRequest(
-    @CurrentUser() user: AuthenticatedUserPayload,
-    @Param('id') id: string,
-  ) {
+  async getPrivacyRequest(@CurrentUser() user: AuthenticatedUserPayload, @Param('id') id: string) {
     const request = await this.privacyComplianceService.getPrivacyRequest(
       id,
       user.id,

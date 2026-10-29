@@ -41,10 +41,7 @@ export class SellerSupportController {
   // ==========================================
 
   @Post('tickets')
-  async createTicket(
-    @CurrentUser() user: AuthenticatedUserPayload,
-    @Body() rawBody: unknown,
-  ) {
+  async createTicket(@CurrentUser() user: AuthenticatedUserPayload, @Body() rawBody: unknown) {
     const parseResult = createSupportTicketSchema.safeParse(rawBody);
     if (!parseResult.success) {
       throw new BadRequestException({
@@ -54,11 +51,7 @@ export class SellerSupportController {
       });
     }
 
-    const ticket = await this.supportCasesService.createTicket(
-      user.id,
-      'SELLER',
-      parseResult.data,
-    );
+    const ticket = await this.supportCasesService.createTicket(user.id, 'SELLER', parseResult.data);
     return createSuccessResponse(ticket);
   }
 
@@ -76,19 +69,12 @@ export class SellerSupportController {
       });
     }
 
-    const result = await this.supportCasesService.listTickets(
-      user.id,
-      'SELLER',
-      parseResult.data,
-    );
+    const result = await this.supportCasesService.listTickets(user.id, 'SELLER', parseResult.data);
     return createSuccessResponse(result);
   }
 
   @Get('tickets/:id')
-  async getTicket(
-    @CurrentUser() user: AuthenticatedUserPayload,
-    @Param('id') id: string,
-  ) {
+  async getTicket(@CurrentUser() user: AuthenticatedUserPayload, @Param('id') id: string) {
     const ticket = await this.supportCasesService.getTicket(id, user.id, 'SELLER');
     return createSuccessResponse(ticket);
   }
@@ -135,19 +121,12 @@ export class SellerSupportController {
       });
     }
 
-    const result = await this.disputesService.listDisputes(
-      user.id,
-      'SELLER',
-      parseResult.data,
-    );
+    const result = await this.disputesService.listDisputes(user.id, 'SELLER', parseResult.data);
     return createSuccessResponse(result);
   }
 
   @Get('disputes/:id')
-  async getDispute(
-    @CurrentUser() user: AuthenticatedUserPayload,
-    @Param('id') id: string,
-  ) {
+  async getDispute(@CurrentUser() user: AuthenticatedUserPayload, @Param('id') id: string) {
     const dispute = await this.disputesService.getDispute(id, user.id, 'SELLER');
     return createSuccessResponse(dispute);
   }
@@ -167,11 +146,7 @@ export class SellerSupportController {
       });
     }
 
-    const dispute = await this.disputesService.submitSellerResponse(
-      id,
-      user.id,
-      parseResult.data,
-    );
+    const dispute = await this.disputesService.submitSellerResponse(id, user.id, parseResult.data);
     return createSuccessResponse(dispute);
   }
 }

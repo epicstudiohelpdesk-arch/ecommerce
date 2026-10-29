@@ -99,7 +99,9 @@ export class PrivacyComplianceService {
     }
 
     if (query.requestType) {
-      conditions.push(eq(this.databaseService.schema.privacyRequests.requestType, query.requestType));
+      conditions.push(
+        eq(this.databaseService.schema.privacyRequests.requestType, query.requestType),
+      );
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
@@ -126,7 +128,10 @@ export class PrivacyComplianceService {
       .from(this.databaseService.schema.privacyRequests)
       .innerJoin(
         this.databaseService.schema.users,
-        eq(this.databaseService.schema.privacyRequests.userId, this.databaseService.schema.users.id),
+        eq(
+          this.databaseService.schema.privacyRequests.userId,
+          this.databaseService.schema.users.id,
+        ),
       )
       .where(whereClause)
       .orderBy(desc(this.databaseService.schema.privacyRequests.createdAt))
@@ -184,7 +189,10 @@ export class PrivacyComplianceService {
       .from(this.databaseService.schema.privacyRequests)
       .innerJoin(
         this.databaseService.schema.users,
-        eq(this.databaseService.schema.privacyRequests.userId, this.databaseService.schema.users.id),
+        eq(
+          this.databaseService.schema.privacyRequests.userId,
+          this.databaseService.schema.users.id,
+        ),
       )
       .where(eq(this.databaseService.schema.privacyRequests.id, requestId))
       .limit(1);
@@ -229,7 +237,9 @@ export class PrivacyComplianceService {
     input: ProcessPrivacyRequestInput,
   ): Promise<PrivacyRequestDetailDto> {
     if (!this.isPrivilegedStaff(staffRole)) {
-      throw new ForbiddenException('Only Trust & Safety or SuperAdmin can process compliance requests');
+      throw new ForbiddenException(
+        'Only Trust & Safety or SuperAdmin can process compliance requests',
+      );
     }
 
     const [request] = await this.databaseService.db

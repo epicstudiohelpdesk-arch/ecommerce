@@ -9,11 +9,7 @@ import { eq, and, desc, sql } from 'drizzle-orm';
 import { randomBytes } from 'node:crypto';
 import { DatabaseService } from '../database/database.service';
 import { AuditService } from '../audit/audit.service';
-import type {
-  CreateRiskCaseInput,
-  ReviewRiskCaseInput,
-  RiskCaseQuery,
-} from '@repo/validation';
+import type { CreateRiskCaseInput, ReviewRiskCaseInput, RiskCaseQuery } from '@repo/validation';
 import type {
   RiskCaseListItemDto,
   RiskCaseDetailDto,
@@ -43,10 +39,7 @@ export class RiskReviewService {
    * Records a potential suspicious activity or risk case for human investigation.
    * INVARIANT: Signals never automatically execute bans or fund withholding.
    */
-  async createRiskCase(
-    creatorId: string,
-    input: CreateRiskCaseInput,
-  ): Promise<RiskCaseDetailDto> {
+  async createRiskCase(creatorId: string, input: CreateRiskCaseInput): Promise<RiskCaseDetailDto> {
     const caseNumber = `RSK-${Date.now().toString().slice(-6)}-${randomBytes(2).toString('hex').toUpperCase()}`;
 
     const [riskCase] = await this.databaseService.db
@@ -103,10 +96,7 @@ export class RiskReviewService {
   /**
    * Lists risk review cases. Strictly restricted to Trust & Safety and SuperAdmin.
    */
-  async listRiskCases(
-    staffRole: string,
-    query: RiskCaseQuery,
-  ): Promise<PaginatedRiskCasesDto> {
+  async listRiskCases(staffRole: string, query: RiskCaseQuery): Promise<PaginatedRiskCasesDto> {
     this.assertPrivilegedAccess(staffRole);
 
     const page = Math.max(1, query.page ?? 1);

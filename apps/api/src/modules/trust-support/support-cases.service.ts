@@ -266,7 +266,10 @@ export class SupportCasesService {
       .from(this.databaseService.schema.supportTickets)
       .innerJoin(
         this.databaseService.schema.users,
-        eq(this.databaseService.schema.supportTickets.creatorId, this.databaseService.schema.users.id),
+        eq(
+          this.databaseService.schema.supportTickets.creatorId,
+          this.databaseService.schema.users.id,
+        ),
       )
       .where(whereClause)
       .orderBy(desc(this.databaseService.schema.supportTickets.updatedAt))
@@ -334,7 +337,10 @@ export class SupportCasesService {
       .from(this.databaseService.schema.supportTickets)
       .innerJoin(
         this.databaseService.schema.users,
-        eq(this.databaseService.schema.supportTickets.creatorId, this.databaseService.schema.users.id),
+        eq(
+          this.databaseService.schema.supportTickets.creatorId,
+          this.databaseService.schema.users.id,
+        ),
       )
       .where(eq(this.databaseService.schema.supportTickets.id, ticketId))
       .limit(1);
@@ -380,9 +386,13 @@ export class SupportCasesService {
     }
 
     // Retrieve messages (filtering out internal notes for non-staff)
-    const messageConditions = [eq(this.databaseService.schema.supportTicketMessages.ticketId, ticketId)];
+    const messageConditions = [
+      eq(this.databaseService.schema.supportTicketMessages.ticketId, ticketId),
+    ];
     if (!isStaff) {
-      messageConditions.push(eq(this.databaseService.schema.supportTicketMessages.isInternal, false));
+      messageConditions.push(
+        eq(this.databaseService.schema.supportTicketMessages.isInternal, false),
+      );
     }
 
     const messages = await this.databaseService.db
@@ -401,7 +411,10 @@ export class SupportCasesService {
       .from(this.databaseService.schema.supportTicketMessages)
       .innerJoin(
         this.databaseService.schema.users,
-        eq(this.databaseService.schema.supportTicketMessages.senderId, this.databaseService.schema.users.id),
+        eq(
+          this.databaseService.schema.supportTicketMessages.senderId,
+          this.databaseService.schema.users.id,
+        ),
       )
       .where(and(...messageConditions))
       .orderBy(this.databaseService.schema.supportTicketMessages.createdAt);
@@ -458,7 +471,9 @@ export class SupportCasesService {
 
     // Confidentiality guard: Customers and sellers can NEVER post internal notes
     if (input.isInternal && !isStaff) {
-      throw new ForbiddenException('Only internal platform staff are permitted to post internal notes');
+      throw new ForbiddenException(
+        'Only internal platform staff are permitted to post internal notes',
+      );
     }
 
     // Verify ticket exists and sender has access
@@ -507,7 +522,10 @@ export class SupportCasesService {
     });
 
     const [sender] = await this.databaseService.db
-      .select({ firstName: this.databaseService.schema.users.firstName, lastName: this.databaseService.schema.users.lastName })
+      .select({
+        firstName: this.databaseService.schema.users.firstName,
+        lastName: this.databaseService.schema.users.lastName,
+      })
       .from(this.databaseService.schema.users)
       .where(eq(this.databaseService.schema.users.id, senderId))
       .limit(1);

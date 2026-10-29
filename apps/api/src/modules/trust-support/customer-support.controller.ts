@@ -51,10 +51,7 @@ export class CustomerSupportController {
 
   @Post('tickets')
   @UseGuards(JwtAuthGuard)
-  async createTicket(
-    @CurrentUser() user: AuthenticatedUserPayload,
-    @Body() rawBody: unknown,
-  ) {
+  async createTicket(@CurrentUser() user: AuthenticatedUserPayload, @Body() rawBody: unknown) {
     const parseResult = createSupportTicketSchema.safeParse(rawBody);
     if (!parseResult.success) {
       throw new BadRequestException({
@@ -97,10 +94,7 @@ export class CustomerSupportController {
 
   @Get('tickets/:id')
   @UseGuards(JwtAuthGuard)
-  async getTicket(
-    @CurrentUser() user: AuthenticatedUserPayload,
-    @Param('id') id: string,
-  ) {
+  async getTicket(@CurrentUser() user: AuthenticatedUserPayload, @Param('id') id: string) {
     const ticket = await this.supportCasesService.getTicket(id, user.id, getUserRole(user));
     return createSuccessResponse(ticket);
   }
@@ -136,10 +130,7 @@ export class CustomerSupportController {
 
   @Post('disputes')
   @UseGuards(JwtAuthGuard)
-  async createDispute(
-    @CurrentUser() user: AuthenticatedUserPayload,
-    @Body() rawBody: unknown,
-  ) {
+  async createDispute(@CurrentUser() user: AuthenticatedUserPayload, @Body() rawBody: unknown) {
     const parseResult = createDisputeSchema.safeParse(rawBody);
     if (!parseResult.success) {
       throw new BadRequestException({
@@ -178,10 +169,7 @@ export class CustomerSupportController {
 
   @Get('disputes/:id')
   @UseGuards(JwtAuthGuard)
-  async getDispute(
-    @CurrentUser() user: AuthenticatedUserPayload,
-    @Param('id') id: string,
-  ) {
+  async getDispute(@CurrentUser() user: AuthenticatedUserPayload, @Param('id') id: string) {
     const dispute = await this.disputesService.getDispute(id, user.id, getUserRole(user));
     return createSuccessResponse(dispute);
   }
@@ -262,10 +250,7 @@ export class CustomerSupportController {
 
   @Get('privacy/:id')
   @UseGuards(JwtAuthGuard)
-  async getPrivacyRequest(
-    @CurrentUser() user: AuthenticatedUserPayload,
-    @Param('id') id: string,
-  ) {
+  async getPrivacyRequest(@CurrentUser() user: AuthenticatedUserPayload, @Param('id') id: string) {
     const request = await this.privacyComplianceService.getPrivacyRequest(
       id,
       user.id,

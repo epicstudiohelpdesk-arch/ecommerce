@@ -66,7 +66,10 @@ export class DisputesService {
       .from(this.databaseService.schema.subOrders)
       .innerJoin(
         this.databaseService.schema.customerOrders,
-        eq(this.databaseService.schema.subOrders.parentOrderId, this.databaseService.schema.customerOrders.id),
+        eq(
+          this.databaseService.schema.subOrders.parentOrderId,
+          this.databaseService.schema.customerOrders.id,
+        ),
       )
       .where(eq(this.databaseService.schema.subOrders.id, input.subOrderId))
       .limit(1);
@@ -221,7 +224,10 @@ export class DisputesService {
       .from(this.databaseService.schema.disputes)
       .innerJoin(
         this.databaseService.schema.subOrders,
-        eq(this.databaseService.schema.disputes.subOrderId, this.databaseService.schema.subOrders.id),
+        eq(
+          this.databaseService.schema.disputes.subOrderId,
+          this.databaseService.schema.subOrders.id,
+        ),
       )
       .innerJoin(
         this.databaseService.schema.users,
@@ -294,7 +300,10 @@ export class DisputesService {
       .from(this.databaseService.schema.disputes)
       .innerJoin(
         this.databaseService.schema.subOrders,
-        eq(this.databaseService.schema.disputes.subOrderId, this.databaseService.schema.subOrders.id),
+        eq(
+          this.databaseService.schema.disputes.subOrderId,
+          this.databaseService.schema.subOrders.id,
+        ),
       )
       .innerJoin(
         this.databaseService.schema.users,
@@ -430,7 +439,9 @@ export class DisputesService {
     input: ResolveDisputeInput,
   ): Promise<DisputeDetailDto> {
     if (!this.isInternalStaff(staffRole)) {
-      throw new ForbiddenException('Only internal platform staff are authorized to arbitrate disputes');
+      throw new ForbiddenException(
+        'Only internal platform staff are authorized to arbitrate disputes',
+      );
     }
 
     const [dispute] = await this.databaseService.db

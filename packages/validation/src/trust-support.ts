@@ -38,9 +38,7 @@ export const supportTicketQuerySchema = z.object({
   status: ticketStatusSchema.optional(),
   category: supportCategorySchema.optional(),
   priority: ticketPrioritySchema.optional(),
-  unassigned: z
-    .union([z.boolean(), z.string().transform((val) => val === 'true')])
-    .optional(),
+  unassigned: z.union([z.boolean(), z.string().transform((val) => val === 'true')]).optional(),
   assignedAgentId: z.string().uuid().optional(),
   search: z.string().optional(),
 });
@@ -75,12 +73,7 @@ export const disputeReasonSchema = z.enum([
   'UNAUTHORIZED_RETURN_REJECTION',
 ]);
 
-export const disputeStatusSchema = z.enum([
-  'OPEN',
-  'UNDER_REVIEW',
-  'RESOLVED',
-  'CLOSED',
-]);
+export const disputeStatusSchema = z.enum(['OPEN', 'UNDER_REVIEW', 'RESOLVED', 'CLOSED']);
 
 export const disputeResolutionSchema = z.enum([
   'FULL_REFUND',

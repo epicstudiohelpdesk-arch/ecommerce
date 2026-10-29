@@ -64,11 +64,7 @@ export const disputeResolutionEnum = pgEnum('dispute_resolution', [
   'SELLER_FAVORED',
 ]);
 
-export const policyTargetTypeEnum = pgEnum('policy_target_type', [
-  'PRODUCT',
-  'SELLER',
-  'REVIEW',
-]);
+export const policyTargetTypeEnum = pgEnum('policy_target_type', ['PRODUCT', 'SELLER', 'REVIEW']);
 
 export const policyReportReasonEnum = pgEnum('policy_report_reason', [
   'MISLEADING_INFO',
@@ -93,11 +89,7 @@ export const policyReportActionEnum = pgEnum('policy_report_action', [
   'SELLER_SUSPENDED',
 ]);
 
-export const riskEntityTypeEnum = pgEnum('risk_entity_type', [
-  'USER',
-  'ORDER',
-  'SELLER',
-]);
+export const riskEntityTypeEnum = pgEnum('risk_entity_type', ['USER', 'ORDER', 'SELLER']);
 
 export const riskSignalTypeEnum = pgEnum('risk_signal_type', [
   'VELOCITY_PAYMENT_FAILURE',
@@ -107,12 +99,7 @@ export const riskSignalTypeEnum = pgEnum('risk_signal_type', [
   'MANUAL_SECURITY_FLAG',
 ]);
 
-export const riskLevelEnum = pgEnum('risk_level', [
-  'LOW',
-  'MEDIUM',
-  'HIGH',
-  'CRITICAL',
-]);
+export const riskLevelEnum = pgEnum('risk_level', ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']);
 
 export const riskCaseStatusEnum = pgEnum('risk_case_status', [
   'OPEN',
@@ -227,7 +214,9 @@ export const supportTicketMessages = pgTable(
     senderRole: varchar('sender_role', { length: 50 }).notNull(),
     message: text('message').notNull(),
     isInternal: boolean('is_internal').default(false).notNull(),
-    attachments: jsonb('attachments').default(sql`'[]'::jsonb`).notNull(),
+    attachments: jsonb('attachments')
+      .default(sql`'[]'::jsonb`)
+      .notNull(),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'date' }).defaultNow().notNull(),
   },
   (table) => [
@@ -288,7 +277,9 @@ export const policyReports = pgTable(
     description: text('description').notNull(),
     evidenceUrls: text('evidence_urls').array(),
     status: policyReportStatusEnum('status').default('PENDING_REVIEW').notNull(),
-    assignedReviewerId: uuid('assigned_reviewer_id').references(() => users.id, { onDelete: 'set null' }),
+    assignedReviewerId: uuid('assigned_reviewer_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
     reviewNotes: text('review_notes'),
     actionTaken: policyReportActionEnum('action_taken').default('NO_ACTION').notNull(),
     resolvedAt: timestamp('resolved_at', { withTimezone: true, mode: 'date' }),
@@ -313,7 +304,9 @@ export const riskCases = pgTable(
     signalType: riskSignalTypeEnum('signal_type').notNull(),
     riskLevel: riskLevelEnum('risk_level').default('MEDIUM').notNull(),
     status: riskCaseStatusEnum('status').default('OPEN').notNull(),
-    assignedInvestigatorId: uuid('assigned_investigator_id').references(() => users.id, { onDelete: 'set null' }),
+    assignedInvestigatorId: uuid('assigned_investigator_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
     evidenceSnapshot: jsonb('evidence_snapshot'),
     internalNotes: text('internal_notes'),
     actionTaken: riskActionTakenEnum('action_taken').default('NONE').notNull(),
@@ -334,7 +327,9 @@ export const privacyRequests = pgTable(
   {
     id: uuid('id').defaultRandom().primaryKey(),
     requestNumber: varchar('request_number', { length: 50 }).notNull().unique(),
-    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'restrict' }),
     requestType: privacyRequestTypeEnum('request_type').notNull(),
     status: privacyRequestStatusEnum('status').default('SUBMITTED').notNull(),
     reason: text('reason'),

@@ -48,6 +48,9 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build Shared Packages
+        run: pnpm --filter '@repo/*' build
+
       - name: Verify Formatting
         run: pnpm format:check
 
